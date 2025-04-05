@@ -1,0 +1,7 @@
+#ignore data files in this directory
+*.xls
+*.xlsm
+*.xlsx
+*.csv
+*.xlsb
+*.parquet
