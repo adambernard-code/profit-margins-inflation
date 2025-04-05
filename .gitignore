@@ -5,3 +5,5 @@
 *.csv
 *.xlsb
 *.parquet
+*.txt
+.DS_Store
