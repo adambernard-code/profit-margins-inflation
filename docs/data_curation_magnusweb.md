@@ -118,3 +118,8 @@ This script converts the raw MagnusWeb data into a tidy, efficient, and analysis
 - Saving the final dataset in Parquet format for efficient storage and fast I/O.
 
 This standardized structure will facilitate easier integration with other datasets (e.g., inflation, macroeconomic data, and additional NACE references) and support robust time-series and panel analysis.
+
+## Newly added Measures: 
+
+- datum vzniku (date founded)
+- datum zrusení (date dissolved)
