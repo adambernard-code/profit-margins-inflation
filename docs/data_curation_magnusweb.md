@@ -27,7 +27,15 @@ The script performs the following major steps:
    - Maps verbose Czech measure names to concise English slugs.
    - Converts columns to appropriate data types (e.g., categorical, integer, float) to optimize memory and performance.
 
-6. **Saving the Final Dataset:**  
+6. **Static vs. Time-Series Columns:**
+   - After constructing the wide panel, the script identifies columns that are static (do not change across years for each ICO) and columns that are time-variant (change across years for each ICO).
+   - **Static columns:**
+     - name, main_nace, main_nace_code, sub_nace_cz, sub_nace_cz_code, main_okec, main_okec_code, sub_okec, sub_okec_code, esa2010, esa95, locality, region, num_employees, num_employees_cat, turnover_cat, audit, consolidation, currency, date_founded, date_dissolved, status, legal_form, entity_type
+   - **Time-series columns:**
+     - year, costs, equity, profit_pre_tax, total_assets, turnover, total_liabilities, profit_net, oper_profit, sales_revenue
+   - Static columns are removed before saving the final Parquet file, ensuring the output contains only time-variant columns relevant for econometric analysis.
+
+7. **Saving the Final Dataset:**  
    - Saves the final wide panel as a Parquet file with Snappy compression, ensuring fast I/O for subsequent analysis.
 
 ---
@@ -62,22 +70,22 @@ The script performs the following major steps:
 
 #### Measure Mapping
 
-| **Original Measure Name**                          | **Mapped Name**       | **Reasoning**                                             |
-|---------------------------------------------------|-----------------------|-----------------------------------------------------------|
-| Hospodářský výsledek před zdaněním                | profit_pre_tax        | Provides a concise, standard English name.              |
-| Hospodářský výsledek za účetní období             | profit_net            | Clarifies that this is the net profit measure.          |
-| Provozní hospodářský výsledek                     | oper_profit           | Shortens the metric name for operating profit.          |
-| Náklady                                           | costs                 | Standard term used in English.                          |
-| Obrat, Výnosy / Obrat Výnosy                        | sales_revenue         | Consolidates similar revenue measures under one term.   |
-| Tržby, Výkony / Tržby Výkony                       | turnover              | Unifies turnover measures for consistency.              |
-| Aktiva celkem                                     | total_assets          | Clearly indicates the total assets of the firm.         |
-| Stálá aktiva                                     | fixed_assets          | Standard term for fixed assets.                         |
-| Oběžná aktiva                                     | current_assets        | Indicates current assets.                               |
-| Ostatní aktiva                                    | other_assets          | Groups other asset categories under a unified term.     |
-| Pasiva celkem                                     | total_liabilities     | Standardizes liabilities reporting.                     |
-| Vlastní kapitál                                   | equity                | Short, standard term for equity.                        |
-| Cizí zdroje                                       | debt                  | Clearly indicates liabilities in the form of debt.      |
-| Ostatní pasiva                                    | other_liabilities     | Specifies other liabilities not classified as debt.     |
+| **Original Measure Name**                          | **Mapped Name**       | **Reasoning**                                             | **Time-Series Variable** |
+|---------------------------------------------------|-----------------------|-----------------------------------------------------------|-------------------------|
+| Hospodářský výsledek před zdaněním                | profit_pre_tax        | Provides a concise, standard English name.                | Yes                    |
+| Hospodářský výsledek za účetní období             | profit_net            | Clarifies that this is the net profit measure.            | Yes                    |
+| Provozní hospodářský výsledek                     | oper_profit           | Shortens the metric name for operating profit.            | Yes                    |
+| Náklady                                           | costs                 | Standard term used in English.                            | Yes                    |
+| Obrat, Výnosy / Obrat Výnosy                      | sales_revenue         | Consolidates similar revenue measures under one term.     | Yes                    |
+| Tržby, Výkony / Tržby Výkony                      | turnover              | Unifies turnover measures for consistency.                | Yes                    |
+| Aktiva celkem                                     | total_assets          | Clearly indicates the total assets of the firm.           | Yes                    |
+| Stálá aktiva                                      | fixed_assets          | Standard term for fixed assets.                           | No                     |
+| Oběžná aktiva                                     | current_assets        | Indicates current assets.                                 | No                     |
+| Ostatní aktiva                                    | other_assets          | Groups other asset categories under a unified term.       | No                     |
+| Pasiva celkem                                     | total_liabilities     | Standardizes liabilities reporting.                       | Yes                    |
+| Vlastní kapitál                                   | equity                | Short, standard term for equity.                          | Yes                    |
+| Cizí zdroje                                       | debt                  | Clearly indicates liabilities in the form of debt.        | No                     |
+| Ostatní pasiva                                    | other_liabilities     | Specifies other liabilities not classified as debt.       | No                     |
 
 ### 4. Data Type Conversion and Cleaning
 
