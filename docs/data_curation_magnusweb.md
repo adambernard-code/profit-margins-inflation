@@ -76,8 +76,8 @@ The script performs the following major steps:
 | Hospodářský výsledek za účetní období             | profit_net            | Clarifies that this is the net profit measure.            | Yes                    |
 | Provozní hospodářský výsledek                     | oper_profit           | Shortens the metric name for operating profit.            | Yes                    |
 | Náklady                                           | costs                 | Standard term used in English.                            | Yes                    |
-| Obrat, Výnosy / Obrat Výnosy                      | sales_revenue         | Consolidates similar revenue measures under one term.     | Yes                    |
-| Tržby, Výkony / Tržby Výkony                      | turnover              | Unifies turnover measures for consistency.                | Yes                    |
+| Obrat, Výnosy / Obrat Výnosy                      | turnover              | Consolidates similar revenue measures under one term.     | Yes                    |
+| Tržby, Výkony / Tržby Výkony                      | sales_revenue         | Unifies turnover measures for consistency.                | Yes                    |
 | Aktiva celkem                                     | total_assets          | Clearly indicates the total assets of the firm.           | Yes                    |
 | Stálá aktiva                                      | fixed_assets          | Standard term for fixed assets.                           | No                     |
 | Oběžná aktiva                                     | current_assets        | Indicates current assets.                                 | No                     |
