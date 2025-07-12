@@ -1,6 +1,6 @@
 # Data Curation Script Documentation - MagnusWeb data 
 
-This script transforms the raw MagnusWeb data (in CSV format) into a tidy dataset that is optimized for time-series and panel analysis. The final output is saved in an efficient Parquet format. This document outlines the main actions performed by the script, along with the rationale behind key data manipulations.
+This script transforms the raw MagnusWeb data (in CSV format) into a **wide firm-year panel** dataset, optimized for time-series and panel analysis (e.g., fixed-effects models). It leverages the **Polars** library for high-performance, memory-efficient processing via lazy evaluation. The final output is saved in the efficient Parquet format. This document outlines the main actions performed by the script, along with the rationale behind key data manipulations.
 
 ---
 
@@ -8,48 +8,48 @@ This script transforms the raw MagnusWeb data (in CSV format) into a tidy datase
 
 The script performs the following major steps:
 
-1. **Data Loading:**  
-   - Reads the raw CSV file from the specified source directory using a semicolon as a delimiter.
+1. **Lazy Data Loading:**  
+   - Scans all raw CSV files from the source directory using **Polars' lazy engine** (`scan_csv`), avoiding high memory usage.
 
 2. **Wide-to-Long Transformation:**  
-   - Separates static (firm-level metadata) columns from time-coded columns.
-   - Melts the wide-format DataFrame into a long (tidy) format, where each row represents a single observation for a given firm at a particular time period and metric.
+   - Separates static (firm-level metadata) columns from time-coded columns (e.g., `2023/4Q Aktiva celkem`).
+   - **Melts** only the time-coded columns into a long (tidy) format, creating rows for each firm-period-metric observation.
 
-3. **Column Parsing and Extraction:**  
-   - Parses raw column names to extract time-series information such as **year**, **quarter**, and the **metric** name.
-   - Handles different naming conventions (e.g., `2023/4Q Aktiva celkem`, `4Q/2001 Tržby Výkony`, and `2023 Kategorie obratu`).
+3. **Column Parsing and Filtering:**  
+   - Parses the melted column names to extract time-series information: **year**, **quarter**, and the **metric** name.
+   - Filters the data to retain only **annual or 4th quarter (Q4)** observations, treating Q4 as the year-end snapshot.
 
-4. **Column Renaming and Measure Mapping:**  
+4. **Pivoting to a Wide Panel:**  
+   - **Pivots** the long-format data into a wide firm-year panel, where each row represents a unique firm-year combination and each metric (e.g., `profit_pre_tax`, `total_assets`) becomes a separate column.
+
+5. **Data Cleaning and Standardization:**  
    - Renames columns to shorter, standardized English names.
-   - Maps verbose measure names (e.g., `"Hospodářský výsledek před zdaněním"`) to concise names (e.g., `"profit_pre_tax"`).
-
-5. **Data Type Conversion and Cleaning:**  
-   - Converts categorical, numeric, and date columns to appropriate data types.
-   - Maps binary values in `audit` and `consolidation` from Czech ("Ano"/"Ne") to English ("Yes"/"No").
-   - Converts date columns to store only the date portion (without time).
+   - Maps verbose Czech measure names to concise English slugs.
+   - Converts columns to appropriate data types (e.g., categorical, integer, float) to optimize memory and performance.
 
 6. **Saving the Final Dataset:**  
-   - Saves the cleaned and transformed data as a Parquet file with Snappy compression, enhancing I/O performance and reducing file size.
+   - Saves the final wide panel as a Parquet file with Snappy compression, ensuring fast I/O for subsequent analysis.
 
 ---
 
 ## Detailed Actions and Rationale
 
-### 1. Wide-to-Long Transformation
+### 1. Lazy Loading and Wide-to-Long Transformation
 
 | **Action**             | **Description**                                                                                        | **Reasoning**                                                                                          |
 |------------------------|--------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| Identify `id_cols`     | Select static (firm-level) columns such as "IČO", "Název subjektu", "Hlavní NACE", etc.                  | These columns do not change over time and serve as firm identifiers for merging and grouping.          |
-| Identify `time_cols`   | All columns not in `id_cols` are considered time-coded and will be melted into a long format.            | Time-coded columns encode both the period and the metric value, which need to be separated for analysis. |
-| Melt DataFrame         | Use `pd.melt()` to convert wide-format data into a long format with columns for firm metadata, period, and value. | A tidy (long) format is more suitable for time-series and panel regression analysis.                  |
+| **Lazy Scan & Concat** | Use `polars.scan_csv` to read multiple CSVs into a lazy DataFrame, then concatenate them.                | Minimizes memory usage by building an execution plan first, allowing Polars to optimize the entire workflow. |
+| **Identify `id_cols`** | Select static (firm-level) columns such as "IČO", "Název subjektu", "Hlavní NACE", etc.                  | These columns serve as firm identifiers and are preserved during the melt operation.                    |
+| **Melt `time_cols`**   | Use `melt()` to convert time-coded columns (e.g., `2022/4Q Náklady`) into a long format with `raw` and `val` columns. | A long format is an essential intermediate step for parsing time and metric information cleanly.         |
 
-### 2. Column Parsing and Extraction
+### 2. Column Parsing, Filtering, and Pivoting to Wide Panel
 
-| **Example Raw Column**         | **Parsed Components**                                  | **Reasoning**                                                            |
-|--------------------------------|--------------------------------------------------------|--------------------------------------------------------------------------|
-| `2023/4Q Aktiva celkem`        | Year: 2023, Quarter: 4, Metric: "Aktiva celkem"         | Extracts the time and metric for longitudinal tracking.                |
-| `4Q/2001 Tržby Výkony`         | Year: 2001, Quarter: 4, Metric: "Tržby Výkony"          | Handles alternative naming conventions consistently.                   |
-| `2023 Kategorie obratu`        | Year: 2023, Quarter: None, Metric: "Kategorie obratu"   | Accommodates columns with only a year component.                       |
+| **Action**             | **Description**                                                                                        | **Reasoning**                                                                                          |
+|------------------------|--------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| **Parse Year/Quarter** | Use regex to extract the `year` and `quarter` from the raw melted column names.                        | Standardizes time information into distinct columns for filtering and aggregation.                     |
+| **Filter for Year-End**| Keep only rows where the quarter is `4` or not specified (annual values).                              | Ensures that each firm has at most one observation per year, creating a consistent annual panel.       |
+| **Pivot to Wide Panel**| Group the long data by `IČO` and `year`, then pivot the `metric` values into their own columns.          | Creates the final model-ready wide format (one row per firm-year), which is expected by most econometric packages. |
+| **Attach Static Data** | Join the wide panel with the unique, static firm-level metadata.                                       | Enriches the panel with time-invariant firm characteristics like NACE codes, location, and founding date. |
 
 ### 3. Column Renaming and Measure Mapping
 
@@ -57,7 +57,8 @@ The script performs the following major steps:
 
 | **Original Column Name**                       | **New Column Name**  | **Reasoning**                                              |
 |------------------------------------------------|----------------------|------------------------------------------------------------|
-| IČO, Název subjektu, Hlavní NACE, etc.           | ico, name, main_nace, etc. | Short, standardized names facilitate coding and merging.  |
+| IČO, Název subjektu, Hlavní NACE, etc.           | ico, name, main_nace, etc. | Short, standardized names facilitate coding and analysis. |
+| Datum vzniku, Datum zrušení                    | date_founded, date_dissolved | Provides clear, English names for key dates.             |
 
 #### Measure Mapping
 
@@ -82,44 +83,30 @@ The script performs the following major steps:
 
 | **Column Name**      | **Original Type**      | **New Type**              | **Reasoning**                                                                 |
 |----------------------|------------------------|---------------------------|-------------------------------------------------------------------------------|
-| audit, consolidation | object                 | category                  | Facilitates grouping and filtering; mapping to "Yes"/"No for clarity.          |
-| currency             | object                 | category                  | Standardizes currency values to "CZK" and "EUR"; reduces memory usage.         |
-| date_founded         | object                 | datetime.date             | Converts to date for easier date comparisons (time portion is not needed).     |
-| date_dissolved       | float64                | datetime.date             | Maintained for potential future use; converted to date.                      |
-| ico                  | int64                  | string                    | Treats firm identifier as a string to avoid numeric misinterpretation.         |
-| num_employees        | float64                | Int64                     | Converts to integer since employee counts should be whole numbers.           |
-| quarter, year        | float64                | Int64                     | Stores time-series values as integers for consistency in analysis.           |
-| Various classification columns (e.g., main_nace, sub_okec_code) | object/float64 | category | Using categorical types optimizes memory and improves grouping performance. |
+| audit, consolidation | object                 | Categorical               | Optimizes memory and performance for binary flags.                            |
+| currency, region, etc.| object                 | Categorical               | Using categorical types for low-cardinality strings is highly memory-efficient. |
+| date_founded         | object (string)        | Date                      | Converts to a proper date type for time-based analysis.                       |
+| ico                  | int64                  | String                    | Treats firm identifier as a string to avoid numeric misinterpretation.         |
+| num_employees        | float64                | Int32                     | Converts to integer since employee counts are whole numbers.                  |
+| year                 | int32                  | Int16                     | Reduces memory footprint for the year column.                                 |
+| All metric columns   | object/float           | Float64                   | Ensures all financial metrics are stored as floating-point numbers for calculations. |
 
-### 5. Value Mapping for Binary Columns
+### 5. Saving the Final Data
 
-| **Column**      | **Mapping**                | **Reasoning**                                               |
-|-----------------|----------------------------|-------------------------------------------------------------|
-| audit           | "Ano" → "Yes", "Ne" → "No" | Converts Czech binary responses to English for consistency.  |
-| consolidation   | "Ano" → "Yes", "Ne" → "No" | Same reasoning as above.                                     |
-
-### 6. Saving the Final Data
-
-- The final cleaned DataFrame is saved as a Parquet file using Snappy compression.  
+- The final wide-panel DataFrame is saved as a Parquet file using Snappy compression.  
 - **Reasoning:**  
-  - Parquet offers faster read/write performance and smaller file sizes compared to CSV.
-  - It is especially beneficial for large datasets and subsequent analyses.
+  - Parquet is a columnar storage format that offers significantly faster read/write performance and smaller file sizes compared to CSV.
+  - It is the standard for storing large datasets for analytics and is ideal for the firm-year panel structure.
 
 ---
 
 ## Conclusion
 
-This script converts the raw MagnusWeb data into a tidy, efficient, and analysis-ready format. The transformation includes:
+This script efficiently transforms raw, multi-file MagnusWeb data into a clean, analysis-ready **firm-year wide panel**. The key steps include:
 
-- Converting wide data into long format with explicit time information.
-- Renaming columns and mapping verbose measure names to concise English equivalents.
-- Converting data types for improved performance and consistency.
-- Mapping binary values to English.
-- Saving the final dataset in Parquet format for efficient storage and fast I/O.
+- Using **Polars' lazy engine** for memory-efficient data ingestion.
+- A **melt-pivot** strategy to robustly parse time-coded columns and reshape the data.
+- Standardizing column names, metrics, and data types for consistency.
+- Saving the final dataset in the high-performance **Parquet** format.
 
-This standardized structure will facilitate easier integration with other datasets (e.g., inflation, macroeconomic data, and additional NACE references) and support robust time-series and panel analysis.
-
-## Newly added Measures: 
-
-- datum vzniku (date founded)
-- datum zrusení (date dissolved)
+This standardized structure is ideal for direct use in econometric models and facilitates easy integration with other datasets (e.g., inflation, macroeconomic data) for robust panel analysis.
