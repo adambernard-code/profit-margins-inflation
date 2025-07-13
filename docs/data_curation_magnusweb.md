@@ -82,9 +82,9 @@ The script performs the following major steps:
 | Stálá aktiva                                      | fixed_assets          | Standard term for fixed assets.                           | No                     |
 | Oběžná aktiva                                     | current_assets        | Indicates current assets.                                 | No                     |
 | Ostatní aktiva                                    | other_assets          | Groups other asset categories under a unified term.       | No                     |
-| Pasiva celkem                                     | total_liabilities     | Standardizes liabilities reporting.                       | Yes                    |
+| Pasiva celkem                                     | total_liabilities_and_equity     | Standardizes liabilities reporting.                       | Yes                    |
 | Vlastní kapitál                                   | equity                | Short, standard term for equity.                          | Yes                    |
-| Cizí zdroje                                       | debt                  | Clearly indicates liabilities in the form of debt.        | No                     |
+| Cizí zdroje                                       | total_liabilities     | Clearly indicates liabilities in the form of debt.        | No                     |
 | Ostatní pasiva                                    | other_liabilities     | Specifies other liabilities not classified as debt.       | No                     |
 
 ### 4. Data Type Conversion and Cleaning
@@ -118,3 +118,108 @@ This script efficiently transforms raw, multi-file MagnusWeb data into a clean, 
 - Saving the final dataset in the high-performance **Parquet** format.
 
 This standardized structure is ideal for direct use in econometric models and facilitates easy integration with other datasets (e.g., inflation, macroeconomic data) for robust panel analysis.
+
+
+## Data Dictionary
+
+Below is a structured overview of every column in the panel dataset, grouped by category. Each entry shows the **column name**, the **original Czech term** (where applicable), and a brief **description**.
+
+---
+
+### 1. Static Entity Attributes
+
+| Column              | Czech term                         | Description                                             |
+| ------------------- | ---------------------------------- | ------------------------------------------------------- |
+| `ico`               | IČO                                | Company Identification Number                           |
+| `name`              | Název subjektu                     | Legal name of the entity                                |
+| `main_nace`         | Hlavní NACE                        | Main NACE classification (text label)                   |
+| `main_nace_code`    | Hlavní NACE – kód                  | Main NACE code (numeric/alphanumeric)                   |
+| `sub_nace_cz`       | Vedlejší NACE CZ                   | Secondary NACE CZ classification (text label)           |
+| `sub_nace_cz_code`  | Vedlejší NACE CZ – kód             | Secondary NACE CZ code                                  |
+| `main_okec`         | Hlavní OKEČ                        | Main OKEČ classification (text label)                   |
+| `main_okec_code`    | Hlavní OKEČ – kód                  | Main OKEČ code                                          |
+| `sub_okec`          | Vedlejší OKEČ                      | Secondary OKEČ classification (text label)              |
+| `sub_okec_code`     | Vedlejší OKEČ – kód                | Secondary OKEČ code                                     |
+| `esa2010`           | Institucionální sektory (ESA 2010) | Institutional sector classification (ESA 2010)          |
+| `esa95`             | Institucionální sektory (ESA 95)   | Institutional sector classification (ESA 95)            |
+| `locality`          | Lokalita                           | Municipality or locality                                |
+| `region`            | Kraj                               | Region                                                  |
+| `num_employees`     | Počet zaměstnanců                  | Number of employees                                     |
+| `num_employees_cat` | Kategorie počtu zaměstnanců CZ     | Employee count category (Czech classification)          |
+| `turnover_cat`      | Kategorie obratu                   | Turnover category                                       |
+| `audit`             | Audit                              | Audit indicator (yes/no)                                |
+| `consolidation`     | Konsolidace                        | Consolidation status                                    |
+| `currency`          | Měna                               | Reporting currency                                      |
+| `date_founded`      | Datum vzniku                       | Date of incorporation                                   |
+| `date_dissolved`    | Datum zrušení                      | Date of dissolution                                     |
+| `status`            | Stav subjektu                      | Current legal status of the entity                      |
+| `legal_form`        | Právní forma                       | Legal form of the entity (e.g., s.r.o., a.s.)           |
+| `entity_type`       | Typ subjektu                       | Type of entity (e.g., corporation, branch, cooperative) |
+
+---
+
+### 2. Core Financial Statement Variables
+
+| Column                         | Czech term                            | Description                              |
+| ------------------------------ | ------------------------------------- | ---------------------------------------- |
+| `profit_pre_tax`               | Hospodářský výsledek před zdaněním    | Profit before tax (EBT)                  |
+| `profit_net`                   | Hospodářský výsledek za účetní období | Net profit (after tax)                   |
+| `oper_profit`                  | Provozní hospodářský výsledek         | Operating profit (EBIT)                  |
+| `costs`                        | Náklady                               | Total costs/expenses                     |
+| `turnover`                     | Obrat, Výnosy / Obrat Výnosy          | Net turnover (total sales revenue)       |
+| `sales_revenue`                | Tržby, Výkony / Tržby Výkony          | Sales revenue (production & merchandise) |
+| `total_assets`                 | Aktiva celkem                         | Total assets                             |
+| `fixed_assets`                 | Stálá aktiva                          | Fixed (non-current) assets               |
+| `current_assets`               | Oběžná aktiva                         | Current assets                           |
+| `other_assets`                 | Ostatní aktiva                        | Other assets                             |
+| `total_liabilities_and_equity` | Pasiva celkem                         | Total liabilities **and** equity         |
+| `equity`                       | Vlastní kapitál                       | Shareholders’ equity                     |
+| `total_liabilities`            | Cizí zdroje                           | Total liabilities (external financing)   |
+| `other_liabilities`            | Ostatní pasiva                        | Other liabilities                        |
+
+---
+
+### 3. Computed Metrics
+
+#### 3.1 Profitability Ratios
+
+| Column                 | Formula                                      | Description                                          |
+| ---------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| `operating_margin_cal` | `oper_profit / sales_revenue`                | Operating margin (EBIT as a share of sales)          |
+| `net_margin_cal`       | `profit_net / sales_revenue`                 | Net profit margin                                    |
+| `gross_margin_cal`     | `(sales_revenue - costs) / sales_revenue`    | Approximate gross margin (1 – cost ratio)            |
+| `roa_ebit_cal`         | `oper_profit / total_assets`                 | Return on assets (EBIT relative to asset base)       |
+| `roe_cal`              | `profit_net / equity`                        | Return on equity (“owners’ yield”)                   |
+| `roic_simple_cal`      | `oper_profit / (equity + total_liabilities)` | Return on invested capital (EBIT / capital employed) |
+
+#### 3.2 Cost Structure Metrics
+
+| Column           | Formula                                   | Description                                  |
+| ---------------- | ----------------------------------------- | -------------------------------------------- |
+| `cost_ratio_cal` | `costs / sales_revenue`                   | Cost ratio (expenses as a share of sales)    |
+| `pcm_proxy_cal`  | `(sales_revenue - costs) / sales_revenue` | Price–cost margin proxy (identical to gross) |
+
+#### 3.3 Interest & Tax Diagnostics
+
+| Column                     | Formula                                          | Description                              |
+| -------------------------- | ------------------------------------------------ | ---------------------------------------- |
+| `net_interest_expense_cal` | `oper_profit - profit_pre_tax`                   | Proxy for net interest/financing expense |
+| `interest_coverage_cal`    | `oper_profit / net_interest_expense_cal`         | Interest coverage ratio                  |
+| `effective_tax_rate_cal`   | `(profit_pre_tax - profit_net) / profit_pre_tax` | Effective tax rate                       |
+
+#### 3.4 Growth Dynamics (YoY)
+
+| Column                 | Formula                              | Description                          |
+| ---------------------- | ------------------------------------ | ------------------------------------ |
+| `rev_growth_cal`       | `pct_change(sales_revenue) over ico` | Year-on-year revenue growth          |
+| `cost_growth_cal`      | `pct_change(costs) over ico`         | Year-on-year cost growth             |
+| `op_profit_growth_cal` | `pct_change(oper_profit) over ico`   | Year-on-year operating profit growth |
+
+#### 3.5 Efficiency & Scale Metrics
+
+| Column                   | Formula                         | Description                                       |
+| ------------------------ | ------------------------------- | ------------------------------------------------- |
+| `asset_turnover_cal`     | `sales_revenue / total_assets`  | Asset turnover (revenue generated per unit asset) |
+| `labor_productivity_cal` | `sales_revenue / num_employees` | Labor productivity (sales per employee)           |
+
+---

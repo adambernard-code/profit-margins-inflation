@@ -1,0 +1,23 @@
+{
+  "Dataset Variants": {
+    "magnusweb_panel_cleaned.parquet": "Main analysis dataset (2015-2023, economic plausibility filters applied)",
+    "magnusweb_panel_hq.parquet": "High-quality subset (firms with ≥5 years of data)",
+    "magnusweb_panel_inflation.parquet": "Inflation analysis dataset (2018-2023, balanced firms)"
+  },
+  "Key Quality Filters Applied": [
+    "Removed negative total assets and sales revenue",
+    "Filtered extreme operating margins (±500%)",
+    "Removed extreme cost ratios (>1000%)",
+    "Excluded firms with systematic data quality issues",
+    "Required minimum temporal coverage for time-series analysis",
+    "Focused on 2015-2023 period for relevance to inflation study"
+  ],
+  "Data Quality Metrics": {
+    "Original observations": "1,285,104",
+    "Cleaned observations": "243,126",
+    "Retention rate": "18.9%",
+    "Firms in main dataset": "29,765",
+    "Analyzable sectors": "130",
+    "Median operating margin": "0.043"
+  }
+}
