@@ -178,62 +178,7 @@ By incorporating both observed and hierarchically imputed values, this propagate
 
 ## 4. `magnusweb_tidy.parquet`
 
-### 4.1. Purpose
-
-This file contains **firm-level** accounting and descriptive data exported from the MagnusWeb database (original file: `export-7.csv`). The script processes this data by reshaping it from a wide format to a long (tidy) format. Time-coded columns (e.g., “2023/4Q Hospodářský výsledek před zdaněním”) are parsed into distinct `year`, `quarter`, and `metric` columns.
-
-### 4.2. Variables and Definitions
-
-#### Firm Identification and Descriptive Fields
-
-| Variable           | Type               | Description                                                                                                       | Original Name                      |
-| ------------------ | ------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `ico`              | String             | The firm’s unique identification number (IČO).                                                                    | IČO                                |
-| `name`             | String             | The firm’s name (Název subjektu).                                                                                 | Název subjektu                     |
-| `main_nace`        | Category           | Textual description of the firm's main NACE activity.                                                             | Hlavní NACE                        |
-| `main_nace_code`   | String             | Code for the firm's main NACE activity.                                                                           | Hlavní NACE - kód                  |
-| `sub_nace_cz`      | Category           | Textual description of an additional (secondary) NACE activity. May be missing.                                   | Vedlejší NACE CZ                   |
-| `sub_nace_cz_code` | String             | Code for an additional (secondary) NACE activity. May be missing.                                                 | Vedlejší NACE CZ - kód             |
-| `main_okec`        | Category           | Textual description of the OKEČ classification (predecessor to NACE in CZ). May be missing.                       | Hlavní OKEČ                        |
-| `main_okec_code`   | String             | Code for the OKEČ classification. May be missing.                                                                 | Hlavní OKEČ - kód                  |
-| `sub_okec`         | Category           | Textual description of an additional OKEČ classification, if available.                                           | Vedlejší OKEČ                      |
-| `sub_okec_code`    | String             | Code for an additional OKEČ classification, if available.                                                         | Vedlejší OKEČ - kód                |
-| `esa2010`          | Category           | Firm’s institutional sector classification under ESA 2010, if provided.                                           | Institucionální sektory (ESA 2010) |
-| `esa95`            | Category           | Firm’s institutional sector classification under ESA 95, if provided.                                             | Institucionální sektory (ESA 95)   |
-| `locality`         | Category           | Geographical location of the firm (e.g., city/district).                                                          | Lokalita                           |
-| `region`           | Category           | Higher-level geographical region of the firm.                                                                     | Kraj                               |
-| `num_employees`    | Integer (nullable) | Stated number of employees.                                                                                       | Počet zaměstnanců                  |
-| `turnover_cat`     | Category           | Category of turnover (e.g., "500 000 000 - 999 999 999 Kč").                                                      | Kategorie obratu                   |
-| `audit`            | Category           | Indicates whether the firm undergoes statutory audit. Possible values: `"Yes"`, `"No"`, or missing.               | Audit                              |
-| `consolidation`    | Category           | Indicates whether the firm’s financial statements are consolidated. Possible values: `"Yes"`, `"No"`, or missing. | Konsolidace                        |
-| `currency`         | Category           | Currency used for the firm’s financial statements in the source. Possible values: `"CZK"`, `"EUR"`, or missing.   | Měna                               |
-| `date_founded`     | Date (YYYY-MM-DD)  | Firm's registration date. May be missing.                                                                         | Datum vzniku                       |
-| `date_dissolved`   | Date (YYYY-MM-DD)  | Firm's dissolution date (if dissolved). May be missing.                                                           | Datum zrušení                      |
-
----
-
-#### Time and Accounting/Financial Data Fields
-
-| Variable  | Type               | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Original Name |
-| --------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| `year`    | Integer (nullable) | Reporting year for the melted accounting/financial data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | year          |
-| `quarter` | Integer (nullable) | Reporting quarter (1–4). If data is annual-only, this may be `NaN`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | quarter       |
-| `metric`  | Category/String    | Type of financial statement item or indicator. Key mappings include:<br>- `profit_pre_tax` (Hospodářský výsledek před zdaněním)<br>- `profit_net` (Hospodářský výsledek za účetní období)<br>- `oper_profit` (Provozní hospodářský výsledek)<br>- `costs` (Náklady)<br>- `sales_revenue` (Obrat / Výnosy / Tržby)<br>- `turnover` (Tržby, Výkony)<br>- `total_assets` (Aktiva celkem)<br>- `fixed_assets` (Stálá aktiva)<br>- `current_assets` (Oběžná aktiva)<br>- `other_assets` (Ostatní aktiva)<br>- `total_liabilities` (Pasiva celkem)<br>- `equity` (Vlastní kapitál)<br>- `debt` (Cizí zdroje)<br>- `other_liabilities` (Ostatní pasiva) | metric        |
-| `value`   | Float              | The numeric figure for the chosen `metric`. Units (e.g., thousands or full currency units) depend on the original source data. The `currency` column indicates if values are in CZK or EUR.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | value         |
-
----
-
-### 4.3. Notes
-
-* Each row represents a single financial metric for a specific firm in a given year and quarter.
-* If the original data column did not contain quarterly information (i.e., it was annual data), the `quarter` field is `NaN`.
-* Some firms or rows may have missing data (NaN) in the `value` column for certain periods or metrics.
-
-### 4.4. Data Sources
-
-| Data Element                              | Source File / Origin      |
-| ----------------------------------------- | ------------------------- |
-| Firm-level financial and descriptive data | MagnusWeb: `export-7.csv` |
+See separate documentation for the MagnusWeb dataset, which contains firm-level data from the MagnusWeb database. This file is structured in a tidy format, with each row representing a single firm-year observation.
 
 ---
 
