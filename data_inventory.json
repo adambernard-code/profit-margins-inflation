@@ -1,0 +1,647 @@
+{
+    "data_inventory_description": "This file contains a detailed inventory of all variables in the merged panel dataset. It is structured by variable category, based on the merged_panel_inventory.csv file.",
+    "categories": [
+        {
+            "category_name": "1. Firm-Level Variables (Prefix: firm_)",
+            "variables": [
+                {
+                    "name": "firm_ico",
+                    "description": "Unique firm identifier (IČO – “IČO”)",
+                    "unit": "String (8-digit ID)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_name",
+                    "description": "Legal name of company (“Název subjektu”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_main_nace",
+                    "description": "Main NACE activity (CZ: “Hlavní NACE”)",
+                    "unit": "String (NACE text description)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_main_nace_code",
+                    "description": "Main NACE code (“Hlavní NACE – kód”)",
+                    "unit": "String / Numeric (e.g. \"C25\")",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_sub_nace_cz",
+                    "description": "Secondary NACE description (“Vedlejší NACE CZ”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_sub_nace_cz_code",
+                    "description": "Secondary NACE code (“Vedlejší NACE CZ – kód”)",
+                    "unit": "String / Numeric",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_main_okec",
+                    "description": "Main OKEČ classification (“Hlavní OKEČ”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_main_okec_code",
+                    "description": "Main OKEČ code (“Hlavní OKEČ – kód”)",
+                    "unit": "String / Numeric",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_sub_okec",
+                    "description": "Secondary OKEČ (“Vedlejší OKEČ”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_sub_okec_code",
+                    "description": "Secondary OKEČ code (“Vedlejší OKEČ – kód”)",
+                    "unit": "String / Numeric",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_esa2010",
+                    "description": "Institutional sector (ESA 2010)",
+                    "unit": "String (sector code)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_esa95",
+                    "description": "Institutional sector (ESA 95)",
+                    "unit": "String (sector code)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_locality",
+                    "description": "Municipality / Locality (“Lokalita”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_region",
+                    "description": "Region (“Kraj”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_num_employees",
+                    "description": "Number of employees (“Počet zaměstnanců”)",
+                    "unit": "Integer (persons)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_num_employees_cat",
+                    "description": "dropped; Employee category (“Kategorie počtu zaměstnanců CZ”)",
+                    "unit": "String (category label)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_turnover_cat",
+                    "description": "Turnover size category (“Kategorie obratu”)",
+                    "unit": "String (category label)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_audit",
+                    "description": "Audit indicator (“Audit”)",
+                    "unit": "Boolean (Yes/No)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_consolidation",
+                    "description": "Consolidation indicator (“Konsolidace”)",
+                    "unit": "Boolean (Yes/No)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_currency",
+                    "description": "Reporting currency (“Měna”)",
+                    "unit": "String (ISO code, e.g. \"CZK\")",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_date_founded",
+                    "description": "Date of incorporation (“Datum vzniku”)",
+                    "unit": "Date (YYYY-MM-DD)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_date_dissolved",
+                    "description": "Date of dissolution (“Datum zrušení”)",
+                    "unit": "Date (YYYY-MM-DD, or null)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_status",
+                    "description": "Legal status (“Stav subjektu”)",
+                    "unit": "String (e.g., active/dissolved)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_legal_form",
+                    "description": "Legal form (“Právní forma”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_entity_type",
+                    "description": "Entity type (“Typ subjektu”)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_year_founded",
+                    "description": "Year of foundation (parsed from date)",
+                    "unit": "Integer (year)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_year_dissolved",
+                    "description": "Year of dissolution (parsed from date)",
+                    "unit": "Integer (year or null)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_is_dissolved",
+                    "description": "Dissolution status (derived)",
+                    "unit": "Boolean (True/False)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_other_liabilities",
+                    "description": "Other liabilities (“Ostatní pasiva”), only last observation, not time-series (static)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_current_assets",
+                    "description": "Current assets (“Oběžná aktiva”), only last observation, not time-series (static)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_total_liabilities",
+                    "description": "Total liabilities (“Cizí zdroje”), only last observation, not time-series (static)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_other_assets",
+                    "description": "Other assets (“Ostatní aktiva”), only last observation, not time-series (static)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_fixed_assets",
+                    "description": "Fixed assets (“Stálá aktiva”), only last observation, not time-series (static)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                }
+            ]
+        },
+        {
+            "category_name": "Financial Statement (Time-variant, per firm-year)",
+            "variables": [
+                {
+                    "name": "firm_sales_revenue",
+                    "description": "Sales revenue (“Tržby, Výkony / Tržby Výkony”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_turnover",
+                    "description": "Turnover (“Obrat, Výnosy / Obrat Výnosy”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_oper_profit",
+                    "description": "Operating profit / EBIT (“Provozní hospodářský výsledek”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_profit_pre_tax",
+                    "description": "Profit before tax (“Hospodářský výsledek před zdaněním”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_profit_net",
+                    "description": "Net profit (“Hospodářský výsledek za účetní období”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_costs",
+                    "description": "Total costs/expenses (“Náklady”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_total_assets",
+                    "description": "Total assets (“Aktiva celkem”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_equity",
+                    "description": "Equity (“Vlastní kapitál”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                },
+                {
+                    "name": "firm_total_liabilities_and_equity",
+                    "description": "Liabilities & equity (“Pasiva celkem”)",
+                    "unit": "CZK (nominal)",
+                    "source": "MagnusWeb"
+                }
+            ]
+        },
+        {
+            "category_name": "Derived Ratios & Diagnostics",
+            "variables": [
+                {
+                    "name": "firm_operating_margin_cal",
+                    "description": "oper_profit / sales_revenue (winsorised 0.5%)",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_net_margin_cal",
+                    "description": "profit_net / sales_revenue (winsorised 0.5%)",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_roa_ebit_cal",
+                    "description": "oper_profit / total_assets",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_roe_cal",
+                    "description": "profit_net / equity",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_equity_ratio_cal",
+                    "description": "equity / total_assets",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_cost_ratio_cal",
+                    "description": "costs / sales_revenue (winsorised 0.5%)",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_effective_tax_rate_cal",
+                    "description": "(profit_pre_tax - profit_net) / profit_pre_tax",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_rev_growth_cal",
+                    "description": "Revenue growth (YoY) pl.col(\"sales_revenue\").pct_change().over(\"ico\")",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_cost_growth_cal",
+                    "description": "Cost growth (YoY) pl.col(\"costs\").pct_change().over(\"ico\")",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_op_profit_growth_cal",
+                    "description": "Operating profit growth (YoY) pl.col(\"oper_profit\").pct_change().over(\"ico\")",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_asset_turnover_cal",
+                    "description": "sales_revenue / total_assets",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_labor_productivity_cal",
+                    "description": "sales_revenue / num_employees",
+                    "unit": "CZK/employee",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_operating_margin_cal_raw",
+                    "description": "Raw calculated (not cleaned) margin - before winsorising",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_cost_ratio_cal_raw",
+                    "description": "Raw calculated (not cleaned) cost ratio - before winsorising",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_net_margin_cal_raw",
+                    "description": "Raw calculated (not cleaned) net margin - before winsorising",
+                    "unit": "Ratio",
+                    "source": "Calculated"
+                }
+            ]
+        },
+        {
+            "category_name": "NACE Matching (for sector joins)",
+            "variables": [
+                {
+                    "name": "firm_level1_code",
+                    "description": "NACE 1st-level code (section, letter, e.g., \"C\")",
+                    "unit": "String",
+                    "source": "t_nace_matching"
+                },
+                {
+                    "name": "level2_code",
+                    "description": "NACE 2nd-level code (2-digit, e.g., \"25\")",
+                    "unit": "String",
+                    "source": "t_nace_matching"
+                },
+                {
+                    "name": "firm_name_czso_en",
+                    "description": "English name for NACE code",
+                    "unit": "String",
+                    "source": "t_nace_matching"
+                },
+                {
+                    "name": "firm_industry_flag",
+                    "description": "Industrial sector flag (B,C,D,E=True)",
+                    "unit": "Boolean",
+                    "source": "t_nace_matching"
+                },
+                {
+                    "name": "magnus_nace",
+                    "description": "NACE code (Magnus formatting, as Magnus reported)",
+                    "unit": "String",
+                    "source": "MagnusWeb"
+                }
+            ]
+        },
+        {
+            "category_name": "2. Sector-Level Variables (Prefix: sector_, joined via NACE/year)",
+            "variables": [
+                {
+                    "name": "sector_avg_wages_by_nace",
+                    "description": "Average gross monthly wage in sector (“Průměrná mzda v CZK”)",
+                    "unit": "CZK / month, per FTE, annual avg, matched on nace_level2",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "sector_no_of_employees_by_nace",
+                    "description": "Number of employees in sector (“Průměrný evidenční počet zaměstnanců”)",
+                    "unit": "Thousands of persons, matched on nace_level2",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "sector_ppi_by_nace",
+                    "description": "Producer Price Index by NACE (“Průmyslový index cen výrobců podle NACE”)",
+                    "unit": "Index (base=2015, 2015=100), matched on nace_level2",
+                    "source": "CZSO"
+                }
+            ]
+        },
+        {
+            "category_name": "3. Macro-Level Variables (Prefix: mac_, joined by year)",
+            "variables": [
+                {
+                    "name": "mac_cnb_repo_rate_annual",
+                    "description": "CNB policy repo rate (annual time-weighted avg, “repo sazba”)",
+                    "unit": "% p.a.",
+                    "source": "CNB"
+                },
+                {
+                    "name": "mac_hicp_dec",
+                    "description": "HICP (Harmonized CPI, Dec values), ICP.M.CZ.N.000000.4.ANR",
+                    "unit": "percentage change vs last year (december)",
+                    "source": "ECB/Eurostat"
+                },
+                {
+                    "name": "mac_hicp_overall_roc",
+                    "description": "HICP – Overall index annual rate of change (headline inflation), ICP.A.CZ.N.000000.4.AVR",
+                    "unit": "% y/y",
+                    "source": "ECB/Eurostat"
+                },
+                {
+                    "name": "mac_hicp_pure_energy_roc",
+                    "description": "HICP – Electricity, gas, solid fuels & heat energy annual rate of change, ICP.A.CZ.N.ELGAS0.4.AVR",
+                    "unit": "% y/y",
+                    "source": "ECB/Eurostat"
+                },
+                {
+                    "name": "mac_hicp_energy_full_roc",
+                    "description": "HICP – Electricity, gas & other fuels annual rate of change, ICP.A.CZ.N.045000.4.AVR",
+                    "unit": "% y/y",
+                    "source": "ECB/Eurostat"
+                },
+                {
+                    "name": "mac_nom_gr_avg_wage_czk",
+                    "description": "Nominal gross average wage (CZK)",
+                    "unit": "CZK / month, FTE",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_no_of_employees_ths",
+                    "description": "No. of employees (national, ths)",
+                    "unit": "Thousands of persons",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_gdp_nominal_prices",
+                    "description": "Nominal GDP (“HDP v běžných cenách”)",
+                    "unit": "CZK millions",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_gdp_2020_base_prices",
+                    "description": "Real GDP (constant 2020 prices)",
+                    "unit": "CZK millions (2020 prices)",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_gdp_2020_base_prices_sopr",
+                    "description": "Real GDP YoY volume index (SOPR)",
+                    "unit": "Index (prev yr=100)",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_deflator_nominal",
+                    "description": "GDP deflator, YoY SOPR (same period LY)",
+                    "unit": "Ratio",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_deflator_base_2020",
+                    "description": "GDP deflator, base 2020",
+                    "unit": "Index (2020=100)",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_unemp_rate",
+                    "description": "Unemployment rate (“Míra nezaměstnanosti”)",
+                    "unit": "%",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "mac_fx_czk_eur_annual_avg",
+                    "description": "CZK/EUR average annual exchange rate",
+                    "unit": "CZK per EUR",
+                    "source": "CNB"
+                },
+                {
+                    "name": "mac_import_price_index_ex_energy",
+                    "description": "Import price index excl. energy (Laspeyres)",
+                    "unit": "Index (2015=100)",
+                    "source": "Custom/CZSO"
+                },
+                {
+                    "name": "mac_FBGSQ",
+                    "description": "Net exports (% GDP, OECD code)",
+                    "unit": "% of GDP",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_NLGXQ",
+                    "description": "Gen. gov. primary balance (% GDP, OECD code)",
+                    "unit": "% of GDP",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_GGFLMQ",
+                    "description": "Gross public debt (Maastrich Criterion as a % GDP, OECD code)",
+                    "unit": "% of GDP",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_RPMGS",
+                    "description": "Rel. price of imports (OECD code)",
+                    "unit": "Index",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_IRS",
+                    "description": "Short-term interest rate (OECD code)",
+                    "unit": "% p.a.",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_IRL",
+                    "description": "Long-term govt bond yield (OECD code)",
+                    "unit": "% p.a.",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_GAP",
+                    "description": "Output gap (% potential GDP, OECD code)",
+                    "unit": "%",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_NOOQ",
+                    "description": "Net one-offs, gen. gov. (% pot. GDP, OECD code) - crisis related fiscal events (bailouts, windfalls)",
+                    "unit": "% of pot. GDP",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_PCORE_YTYPCT",
+                    "description": "Core inflation, YoY % (OECD code)",
+                    "unit": "% YoY",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_HRS",
+                    "description": "Hours worked per worker (OECD code)",
+                    "unit": "Number (annual avg)",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_CPI_YTYPCT",
+                    "description": "Headline CPI YoY % (OECD code)",
+                    "unit": "% YoY",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_UNR",
+                    "description": "Unemployment rate, OECD code",
+                    "unit": "%",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_EXCH",
+                    "description": "CZK/USD exchange rate (OECD code)",
+                    "unit": "CZK per USD",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_MPEN",
+                    "description": "Import penetration (% domestic demand, OECD code), note: Share of domestic demand met by imports",
+                    "unit": "%",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_ULC",
+                    "description": "Unit labour cost, total economy (OECD code)",
+                    "unit": "Index (2021=100)",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_PDTY",
+                    "description": "Labour productivity (OECD code)",
+                    "unit": "Index (2021=100)",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_ULCDR",
+                    "description": "Relative ULC, Czech vs. trade partners (OECD code)",
+                    "unit": "Index (2021=100)",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_EXCHEB",
+                    "description": "Nominal effective exchange rate (OECD code)",
+                    "unit": "Index (2021=100)",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_TTRADE",
+                    "description": "Terms of trade index (OECD code)",
+                    "unit": "Index",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_KTPV_ANNPCT",
+                    "description": "Productive capital stock growth, % (OECD code)",
+                    "unit": "% YoY",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_CPV_ANNPCT",
+                    "description": "Private final consumption growth, % (OECD code)",
+                    "unit": "% YoY",
+                    "source": "OECD EO117"
+                },
+                {
+                    "name": "mac_ITV_ANNPCT",
+                    "description": "Gross fixed capital formation growth, % (OECD code)",
+                    "unit": "% YoY",
+                    "source": "OECD EO117"
+                }
+            ]
+        }
+    ]
+}
