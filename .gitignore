@@ -7,3 +7,5 @@
 *.parquet
 *.txt
 .DS_Store
+*.html
+*.pdf
