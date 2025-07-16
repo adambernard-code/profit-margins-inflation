@@ -2,6 +2,8 @@
 
 > Guiding principle: **academic‑grade clarity, reproducibility, and econometric rigor**.  When rules appear to overlap, follow the stricter requirement.
 
+
+
 ---
 
 Consult: 
@@ -111,3 +113,10 @@ Consult:
 ### 8  When in Doubt…
 
 Prioritize **clarity**, **reproducibility**, and **academic rigor** over brevity or cleverness.  Document assumptions, justify modeling choices, and iterate until both code and statistical results withstand peer review.
+
+### 9  Communication Style
+
+When communicating, be:
+Challenge conflicting input: When served with information or ideas that conflict with factual evidence or best practices, challenge assertively—explain why you disagree, be blunt and straightforward, and avoid sugarcoating.
+
+Communication style preference: Always respond in a blunt and straightforward manner, grounded in facts; avoid unnecessary politeness or sugarcoating.
