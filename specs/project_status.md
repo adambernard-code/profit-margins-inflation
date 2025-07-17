@@ -10,12 +10,12 @@ The project has made significant progress, moving from data acquisition and cura
 
 - **Completed Features:**
   - **Data Curation:** All primary data sources (MagnusWeb, CZSO, OECD, CNB, Eurostat) have been acquired, processed, and cleaned. This includes firm-level financials, sectoral indicators, and macroeconomic variables.
-  - **Data Quality:** Extensive data quality checks and enrichment have been performed on the core MagnusWeb firm-level dataset.
+  - **Data Quality:** Extensive data quality checks and enrichment have been performed on the core MagnusWeb firm-level dataset. The data quality pipeline now includes initial cleaning, robust outlier detection, per-year winsorisation of ratios, and aggressive winsorisation of growth variables, all implemented in a reproducible, academic-grade workflow.
   - **Data Merging:** All curated datasets have been successfully merged into a single, analysis-ready panel dataset (`merged_panel_final.parquet`).
   - **Exploratory Analysis:** Initial exploratory data analysis has been completed to understand the characteristics of the dataset.
 
 - **In-Progress Tasks:**
-  - **Data Quality Checks:** Revisit the data quality checks of MagnusWeb - clean up the scripts and generate two or three datasets with different approaches and levels of cleaning.
+  - **Data Quality Checks:** The MagnusWeb data quality pipeline has been consolidated and upgraded. Further review may be needed for alternative cleaning strategies or sensitivity analysis, but the main workflow is now robust and reproducible.
   - **Econometric Analysis:** The core analytical work is in progress. This involves running panel data regressions to test the main research hypotheses.
   - **Results Interpretation:** Initial results from the models are being analyzed and interpreted in the context of the research questions.
 
@@ -37,8 +37,8 @@ This table tracks the status of the major components (Jupyter notebooks) in the 
 | `data_curation_macro_indicators.ipynb`             | ✅ Done       | [src_01_data_curation/data_curation_macro_indicators.ipynb](<../src_01_data_curation/data_curation_macro_indicators.ipynb>) |
 | `data_curation_import_prices.ipynb`                | ✅ Done       | [src_01_data_curation/data_curation_import_prices.ipynb](<../src_01_data_curation/data_curation_import_prices.ipynb>) |
 | **Data Quality & Merging**                         |               |                                                                                                       |
-| `01_magnusweb_data_cleaning_enrichment.ipynb`      | ✅ Done       | [src_02_data_quality/01_magnusweb_data_cleaning_enrichment.ipynb](<../src_02_data_quality/01_magnusweb_data_cleaning_enrichment.ipynb>) |
-| `02_magnusweb_dq.ipynb`                            | ✅ Done       | [src_02_data_quality/02_magnusweb_dq.ipynb](<../src_02_data_quality/02_magnusweb_dq.ipynb>)                   |
+| `01_magnusweb_data_cleaning_enrichment.ipynb`      | ✅ Deprecated | [src_02_data_quality/01_magnusweb_data_cleaning_enrichment.ipynb](<../src_02_data_quality/01_magnusweb_data_cleaning_enrichment.ipynb>) |
+| `02_magnusweb_dq time-series checks.ipynb`         | ✅ Done       | [src_02_data_quality/02_magnusweb_dq time-series checks.ipynb](<../src_02_data_quality/02_magnusweb_dq%20time-series%20checks.ipynb>) |
 | `03_merge.ipynb`                                   | ✅ Done       | [src_02_data_quality/03_merge.ipynb](<../src_02_data_quality/03_merge.ipynb>)                               |
 | **Analysis**                                       |               |                                                                                                       |
 | `00_exploratory_analysis.ipynb`                    | 🔄 In Progress | [src_03_analysis/00_exploratory_analysis.ipynb](<../src_03_analysis/00_exploratory_analysis.ipynb>)       |
