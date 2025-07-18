@@ -320,24 +320,6 @@
                     "unit": "CZK/employee",
                     "source": "Calculated"
                 },
-                {
-                    "name": "firm_operating_margin_cal_raw",
-                    "description": "Raw calculated (not cleaned) margin - before winsorising",
-                    "unit": "Ratio",
-                    "source": "Calculated"
-                },
-                {
-                    "name": "firm_cost_ratio_cal_raw",
-                    "description": "Raw calculated (not cleaned) cost ratio - before winsorising",
-                    "unit": "Ratio",
-                    "source": "Calculated"
-                },
-                {
-                    "name": "firm_net_margin_cal_raw",
-                    "description": "Raw calculated (not cleaned) net margin - before winsorising",
-                    "unit": "Ratio",
-                    "source": "Calculated"
-                }
             ]
         },
         {
