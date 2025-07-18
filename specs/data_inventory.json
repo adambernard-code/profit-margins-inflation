@@ -319,7 +319,7 @@
                     "description": "sales_revenue / num_employees",
                     "unit": "CZK/employee",
                     "source": "Calculated"
-                },
+                }
             ]
         },
         {
