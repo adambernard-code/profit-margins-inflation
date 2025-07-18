@@ -82,7 +82,9 @@ The data curation process is structured as a series of Jupyter notebooks, each r
         - `firm_ico` (unique firm identifier)
         - `year`
         - All firm-level financial variables.
-        - All relevant sectoral indicators, matched by `level2_code` (NACE classification) and `year`.
+        - All relevant sectoral indicators, matched by both `level1_code` (NACE section) and `level2_code` (NACE 2-digit) and `year`.
+            - Level 1 sector columns: `sector_level1_avg_wages_by_nace`, `sector_level1_no_of_employees_by_nace`, `sector_level1_ppi_by_nace`, `level1_nace_en_name`
+            - Level 2 sector columns: `sector_level2_avg_wages_by_nace`, `sector_level2_no_of_employees_by_nace`, `sector_level2_ppi_by_nace`, `level2_nace_en_name`
         - All relevant macroeconomic indicators, matched by `year`.
 - **Acceptance Criteria:**
     - The merge is successful without creating duplicate rows.
