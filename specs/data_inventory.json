@@ -309,24 +309,6 @@
                     "source": "Calculated"
                 },
                 {
-                    "name": "firm_rev_growth_cal",
-                    "description": "Revenue growth (YoY) pl.col(\"sales_revenue\").pct_change().over(\"ico\")",
-                    "unit": "% (Δ YoY)",
-                    "source": "Calculated"
-                },
-                {
-                    "name": "firm_cost_growth_cal",
-                    "description": "Cost growth (YoY) pl.col(\"costs\").pct_change().over(\"ico\")",
-                    "unit": "% (Δ YoY)",
-                    "source": "Calculated"
-                },
-                {
-                    "name": "firm_op_profit_growth_cal",
-                    "description": "Operating profit growth (YoY) pl.col(\"oper_profit\").pct_change().over(\"ico\")",
-                    "unit": "% (Δ YoY)",
-                    "source": "Calculated"
-                },
-                {
                     "name": "firm_asset_turnover_cal",
                     "description": "sales_revenue / total_assets",
                     "unit": "Ratio",
@@ -379,6 +361,18 @@
                     "unit": "String",
                     "source": "t_nace_matching"
                 },
+               {
+                   "name": "level1_nace_en_name",
+                   "description": "English name for NACE 1st-level code (section, letter, e.g., 'C')",
+                   "unit": "String",
+                   "source": "CZSO"
+               },
+               {
+                   "name": "level2_nace_en_name",
+                   "description": "English name for NACE 2nd-level code (2-digit, e.g., '25')",
+                   "unit": "String",
+                   "source": "CZSO"
+               },
                 {
                     "name": "firm_industry_flag",
                     "description": "Industrial sector flag (B,C,D,E=True)",
@@ -397,20 +391,38 @@
             "category_name": "2. Sector-Level Variables (Prefix: sector_, joined via NACE/year)",
             "variables": [
                 {
-                    "name": "sector_avg_wages_by_nace",
-                    "description": "Average gross monthly wage in sector (“Průměrná mzda v CZK”)",
+                    "name": "sector_level1_avg_wages_by_nace",
+                    "description": "Average gross monthly wage in sector (NACE 1st-level granularity)",
+                    "unit": "CZK / month, per FTE, annual avg, matched on nace_level1",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "sector_level1_no_of_employees_by_nace",
+                    "description": "Number of employees in sector (NACE 1st-level granularity)",
+                    "unit": "Thousands of persons, matched on nace_level1",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "sector_level1_ppi_by_nace",
+                    "description": "Producer Price Index by NACE (NACE 1st-level granularity)",
+                    "unit": "Index (base=2015, 2015=100), matched on nace_level1",
+                    "source": "CZSO"
+                },
+                {
+                    "name": "sector_level2_avg_wages_by_nace",
+                    "description": "Average gross monthly wage in sector (NACE 2nd-level granularity)",
                     "unit": "CZK / month, per FTE, annual avg, matched on nace_level2",
                     "source": "CZSO"
                 },
                 {
-                    "name": "sector_no_of_employees_by_nace",
-                    "description": "Number of employees in sector (“Průměrný evidenční počet zaměstnanců”)",
+                    "name": "sector_level2_no_of_employees_by_nace",
+                    "description": "Number of employees in sector (NACE 2nd-level granularity)",
                     "unit": "Thousands of persons, matched on nace_level2",
                     "source": "CZSO"
                 },
                 {
-                    "name": "sector_ppi_by_nace",
-                    "description": "Producer Price Index by NACE (“Průmyslový index cen výrobců podle NACE”)",
+                    "name": "sector_level2_ppi_by_nace",
+                    "description": "Producer Price Index by NACE (NACE 2nd-level granularity)",
                     "unit": "Index (base=2015, 2015=100), matched on nace_level2",
                     "source": "CZSO"
                 }
