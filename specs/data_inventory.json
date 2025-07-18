@@ -749,6 +749,42 @@
                     "source": "Calculated"
                 },
                 {
+                    "name": "sector_level1_avg_wages_by_nace_logyoy",
+                    "description": "Log YoY growth of average gross monthly wage in sector (NACE 1st-level)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_level1_no_of_employees_by_nace_logyoy",
+                    "description": "Log YoY growth of number of employees in sector (NACE 1st-level)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_level1_ppi_by_nace_logyoy",
+                    "description": "Log YoY growth of producer price index by NACE (NACE 1st-level)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_level2_avg_wages_by_nace_logyoy",
+                    "description": "Log YoY growth of average gross monthly wage in sector (NACE 2nd-level)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_level2_no_of_employees_by_nace_logyoy",
+                    "description": "Log YoY growth of number of employees in sector (NACE 2nd-level)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_level2_ppi_by_nace_logyoy",
+                    "description": "Log YoY growth of producer price index by NACE (NACE 2nd-level)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
                     "name": "mac_fx_czk_eur_annual_avg_logyoy",
                     "description": "Log YoY growth of CZK/EUR average annual exchange rate",
                     "unit": "Log points (Δ YoY)",
