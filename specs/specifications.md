@@ -62,13 +62,17 @@ The data curation process is structured as a series of Jupyter notebooks, each r
 - **Input:** Raw MagnusWeb data.
 - **Output:** Cleaned Parquet file (`magnusweb_panel_with_margins.parquet`).
 
-### 2.2. `02_magnusweb_dq.ipynb` and `02_magnusweb_dq_time-series checks.ipynb`
-- **Purpose:** To perform data quality checks on the MagnusWeb dataset, including time-series consistency checks.
-- **Input:** MagnusWeb data from previous step.
-- **Output:** Cleaned MagnusWeb data files saved in the `data/source_cleaned/` directory, specifically `magnusweb_panel_[version].parquet`.
+### 2.2. `01_magnusweb_dq.ipynb`
+- **Purpose:** To perform comprehensive data quality checks on the MagnusWeb dataset, including time-series consistency, missingness, outlier detection, and duplicate handling.
+- **Input:** Cleaned MagnusWeb data from previous enrichment step.
+- **Output:** Quality-checked MagnusWeb data files saved in the `data/source_cleaned/` directory, specifically `magnusweb_panel_[version].parquet`.
+- **Acceptance Criteria:**
+    - Data quality checks (missingness, outliers, duplicates) are performed and logged.
+    - Time-series consistency is verified for all key financial variables.
+    - Winsorisation is applied to ratios.
+    - Output files are free of duplicate firm-year keys and major data integrity issues.
 
-### 2.3. `03_merge.ipynb`
-
+### 2.3. `02_merge.ipynb`
 - **Purpose:** To merge all curated data sources into a single, analysis-ready panel dataset.
 - **Input:** All cleaned Parquet files from the `data/source_cleaned/` directory.
 - **Output:** The final merged panel dataset (`merged_panel_final.parquet`).
@@ -84,6 +88,24 @@ The data curation process is structured as a series of Jupyter notebooks, each r
     - The merge is successful without creating duplicate rows.
     - The final dataset contains the expected number of rows and columns.
     - An inventory of the final merged panel is created (`merged_panel_inventory.csv`).
+    - Sector and macro columns are included and documented in the inventory.
+
+### 2.4. `03_cal_growth.ipynb`
+- **Purpose:** To generate growth rate variables (log year-over-year, percentage change, difference in percentage points) for all relevant firm, sector, and macro indicators in the merged panel.
+- **Input:** Merged panel dataset (`merged_panel_final.parquet`).
+- **Output:** Enriched panel dataset with new growth variables (`merged_panel_clean.parquet`), and a documentation file (`merged_panel_clean_growth_variables_docs.txt`).
+- **Data Model:**
+    - Adds columns for:
+        - Log YoY growth (`_logyoy` suffix)
+        - Percentage change (`_pct` suffix)
+        - Difference in percentage points (`_dpp` suffix)
+    - Growth variables are generated for all domains: firm, sector, macro.
+- **Acceptance Criteria:**
+    - All growth variables are calculated using robust, reproducible formulas.
+    - Edge cases (e.g., zero denominators, non-positive values for logs) are handled explicitly.
+    - Growth variable documentation is generated and includes all domains.
+    - Data inventory is updated to reflect new growth variable categories.
+    - No duplicate keys or data integrity issues are introduced.
 
 ## 3. Analysis Modules
 
