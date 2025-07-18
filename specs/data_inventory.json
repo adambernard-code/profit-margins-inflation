@@ -642,6 +642,459 @@
                     "source": "OECD EO117"
                 }
             ]
+        },
+        {
+            "category_name": "4. Transformed Variables: Log Year-over-Year Growth (_logyoy)",
+            "variables": [
+                {
+                    "name": "firm_costs_logyoy",
+                    "description": "Log YoY growth of Total costs/expenses",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_equity_logyoy",
+                    "description": "Log YoY growth of Equity",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_oper_profit_logyoy",
+                    "description": "Log YoY growth of Operating profit / EBIT",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_profit_net_logyoy",
+                    "description": "Log YoY growth of Net profit",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_profit_pre_tax_logyoy",
+                    "description": "Log YoY growth of Profit before tax",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_sales_revenue_logyoy",
+                    "description": "Log YoY growth of Sales revenue",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_total_assets_logyoy",
+                    "description": "Log YoY growth of Total assets",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_total_liabilities_and_equity_logyoy",
+                    "description": "Log YoY growth of Liabilities & equity",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_turnover_logyoy",
+                    "description": "Log YoY growth of Turnover",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_EXCHEB_logyoy",
+                    "description": "Log YoY growth of Nominal effective exchange rate",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_PDTY_logyoy",
+                    "description": "Log YoY growth of Labour productivity",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_TTRADE_logyoy",
+                    "description": "Log YoY growth of Terms of trade index",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_ULCDR_logyoy",
+                    "description": "Log YoY growth of Relative ULC, Czech vs. trade partners",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_ULC_logyoy",
+                    "description": "Log YoY growth of Unit labour cost, total economy",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_deflator_base_2020_logyoy",
+                    "description": "Log YoY growth of GDP deflator, base 2020",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_fx_czk_eur_annual_avg_logyoy",
+                    "description": "Log YoY growth of CZK/EUR average annual exchange rate",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_gdp_2020_base_prices_logyoy",
+                    "description": "Log YoY growth of Real GDP (constant 2020 prices)",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_gdp_nominal_prices_logyoy",
+                    "description": "Log YoY growth of Nominal GDP",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_import_price_index_ex_energy_logyoy",
+                    "description": "Log YoY growth of Import price index excl. energy",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_nom_gr_avg_wage_czk_logyoy",
+                    "description": "Log YoY growth of Nominal gross average wage",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_avg_wages_by_nace_logyoy",
+                    "description": "Log YoY growth of Average gross monthly wage in sector",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_no_of_employees_by_nace_logyoy",
+                    "description": "Log YoY growth of Number of employees in sector",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_ppi_by_nace_logyoy",
+                    "description": "Log YoY growth of Producer Price Index by NACE",
+                    "unit": "Log points (Δ YoY)",
+                    "source": "Calculated"
+                }
+            ]
+        },
+        {
+            "category_name": "5. Transformed Variables: Percentage Change (_pct)",
+            "variables": [
+                {
+                    "name": "firm_costs_pct",
+                    "description": "Percentage change of Total costs/expenses",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_equity_pct",
+                    "description": "Percentage change of Equity",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_oper_profit_pct",
+                    "description": "Percentage change of Operating profit / EBIT",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_profit_net_pct",
+                    "description": "Percentage change of Net profit",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_profit_pre_tax_pct",
+                    "description": "Percentage change of Profit before tax",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_sales_revenue_pct",
+                    "description": "Percentage change of Sales revenue",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_total_assets_pct",
+                    "description": "Percentage change of Total assets",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_total_liabilities_and_equity_pct",
+                    "description": "Percentage change of Liabilities & equity",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_turnover_pct",
+                    "description": "Percentage change of Turnover",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_EXCHEB_pct",
+                    "description": "Percentage change of Nominal effective exchange rate",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_PDTY_pct",
+                    "description": "Percentage change of Labour productivity",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_TTRADE_pct",
+                    "description": "Percentage change of Terms of trade index",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_ULCDR_pct",
+                    "description": "Percentage change of Relative ULC, Czech vs. trade partners",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_ULC_pct",
+                    "description": "Percentage change of Unit labour cost, total economy",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_deflator_base_2020_pct",
+                    "description": "Percentage change of GDP deflator, base 2020",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_fx_czk_eur_annual_avg_pct",
+                    "description": "Percentage change of CZK/EUR average annual exchange rate",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_gdp_2020_base_prices_pct",
+                    "description": "Percentage change of Real GDP (constant 2020 prices)",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_gdp_2020_base_prices_sopr_pct",
+                    "description": "Percentage change of Real GDP YoY volume index (SOPR)",
+                    "unit": "%",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_gdp_nominal_prices_pct",
+                    "description": "Percentage change of Nominal GDP",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_import_price_index_ex_energy_pct",
+                    "description": "Percentage change of Import price index excl. energy",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_nom_gr_avg_wage_czk_pct",
+                    "description": "Percentage change of Nominal gross average wage",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_avg_wages_by_nace_pct",
+                    "description": "Percentage change of Average gross monthly wage in sector",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_no_of_employees_by_nace_pct",
+                    "description": "Percentage change of Number of employees in sector",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "sector_ppi_by_nace_pct",
+                    "description": "Percentage change of Producer Price Index by NACE",
+                    "unit": "% (Δ YoY)",
+                    "source": "Calculated"
+                }
+            ]
+        },
+        {
+            "category_name": "6. Transformed Variables: Difference in Percentage Points (_dpp)",
+            "variables": [
+                {
+                    "name": "firm_cost_ratio_cal_dpp",
+                    "description": "YoY change in Cost ratio",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_effective_tax_rate_cal_dpp",
+                    "description": "YoY change in Effective tax rate",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_equity_ratio_cal_dpp",
+                    "description": "YoY change in Equity ratio",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_net_margin_cal_dpp",
+                    "description": "YoY change in Net margin",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_operating_margin_cal_dpp",
+                    "description": "YoY change in Operating margin",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_roa_ebit_cal_dpp",
+                    "description": "YoY change in ROA (EBIT)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "firm_roe_cal_dpp",
+                    "description": "YoY change in ROE",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_CPI_YTYPCT_dpp",
+                    "description": "YoY change in Headline CPI YoY %",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_CPV_ANNPCT_dpp",
+                    "description": "YoY change in Private final consumption growth, %",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_FBGSQ_dpp",
+                    "description": "YoY change in Net exports (% GDP)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_GAP_dpp",
+                    "description": "YoY change in Output gap (% potential GDP)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_GGFLMQ_dpp",
+                    "description": "YoY change in Gross public debt (% GDP)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_IRL_dpp",
+                    "description": "YoY change in Long-term govt bond yield",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_IRS_dpp",
+                    "description": "YoY change in Short-term interest rate",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_ITV_ANNPCT_dpp",
+                    "description": "YoY change in Gross fixed capital formation growth, %",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_KTPV_ANNPCT_dpp",
+                    "description": "YoY change in Productive capital stock growth, %",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_MPEN_dpp",
+                    "description": "YoY change in Import penetration (% domestic demand)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_NLGXQ_dpp",
+                    "description": "YoY change in Gen. gov. primary balance (% GDP)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_NOOQ_dpp",
+                    "description": "YoY change in Net one-offs, gen. gov. (% pot. GDP)",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_PCORE_YTYPCT_dpp",
+                    "description": "YoY change in Core inflation, YoY %",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_UNR_dpp",
+                    "description": "YoY change in Unemployment rate",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_cnb_repo_rate_annual_dpp",
+                    "description": "YoY change in CNB policy repo rate",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_hicp_energy_full_roc_dpp",
+                    "description": "YoY change in HICP – Electricity, gas & other fuels annual rate of change",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_hicp_overall_roc_dpp",
+                    "description": "YoY change in HICP – Overall index annual rate of change",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_hicp_pure_energy_roc_dpp",
+                    "description": "YoY change in HICP – Electricity, gas, solid fuels & heat energy annual rate of change",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                },
+                {
+                    "name": "mac_unemp_rate_dpp",
+                    "description": "YoY change in Unemployment rate",
+                    "unit": "Percentage points (Δ YoY)",
+                    "source": "Calculated"
+                }
+            ]
         }
     ]
 }
