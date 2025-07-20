@@ -13,14 +13,14 @@ The project has transitioned from data acquisition and curation to advanced econ
   - **Data Quality:** The data quality pipeline is finalized, including robust outlier detection, per-year winsorisation of ratios, and aggressive winsorisation of growth variables. All transformations are reproducible and documented.
   - **Data Merging:** All curated datasets have been successfully merged into a single, analysis-ready panel dataset (`merged_panel_final.parquet`).
   - **Growth Rate Transformations:** Log year-over-year growth, percentage change, and difference in percentage points variables have been generated for all relevant domains. Documentation and inventory have been updated.
+  - **Exploratory Analysis:** Comprehensive exploratory analysis completed in `00_exploratory_analysis_winsorized.ipynb`, covering descriptive statistics, time-series diagnostics, cross-sectional heterogeneity, panel persistence, bivariate relationships, multivariate structure (correlation/PCA), and outlier/influence checks. Data quality recommendations and cleaning rules have been formulated.
 
 - **In-Progress Tasks:**
-  - **Exploratory Analysis:** Initial exploratory data analysis currently ongoing to identify trends and patterns in the data.
-  - **Econometric Analysis:** Panel regression modeling is underway, using the enriched dataset. Model specifications and diagnostics are being iterated for validity and robustness.
-  - **Results Interpretation:** Analytical results are being interpreted in the context of the research questions.
+  - **Econometric Analysis:** Panel regression modeling is underway, using the enriched and cleaned dataset. Model specifications and diagnostics are being iterated for validity and robustness, with dynamic panel methods (Arellano-Bond GMM) planned based on persistence findings.
+  - **Results Interpretation:** Analytical results are being interpreted in the context of the research questions and hypotheses.
 
 - **Upcoming Milestones:**
-  - Finalize all econometric models and robustness checks.
+  - Finalize all econometric models and robustness checks (including alternative outlier filters).
   - Generate all plots and tables for the final thesis.
   - Write the methodology and results chapters of the thesis.
   - Draft the final conclusion and policy recommendations.
@@ -41,11 +41,12 @@ This table tracks the status of the major components (Jupyter notebooks) in the 
 | `02_merge.ipynb`                                   | ✅ Done       | [src_02_data_quality/02_merge.ipynb](../src_02_data_quality/02_merge.ipynb) |
 | `03_cal_growth.ipynb`                              | ✅ Done       | [src_02_data_quality/03_cal_growth.ipynb](../src_02_data_quality/03_cal_growth.ipynb) |
 | **Analysis**                                       |               |                                                                                                       |
-| `00_exploratory_analysis.ipynb`                    | 🔄 In Progress | [src_03_analysis/00_exploratory_analysis.ipynb](../src_03_analysis/00_exploratory_analysis.ipynb) |
+| `00_exploratory_analysis.ipynb`                    | ❌ Deprecated  | [src_03_analysis/00_exploratory_analysis.ipynb](../src_03_analysis/00_exploratory_analysis.ipynb) |
+| `00_exploratory_analysis_winsorized.ipynb`         | ✅ Done        | [src_03_analysis/00_exploratory_analysis_winsorized.ipynb](../src_03_analysis/00_exploratory_analysis_winsorized.ipynb) |
 | `01_firm_level_panel.ipynb`                        | 🔄 In Progress | [src_03_analysis/01_firm_level_panel.ipynb](../src_03_analysis/01_firm_level_panel.ipynb) |
 | `02_sector_level_analysis.ipynb`                   | 🔄 In Progress | [src_03_analysis/02_sector_level_analysis.ipynb](../src_03_analysis/02_sector_level_analysis.ipynb) |
 | `03_marco_analysis.ipynb`                          | ❌ Planned    | [src_03_analysis/03_marco_analysis.ipynb](../src_03_analysis/03_marco_analysis.ipynb) |
 
 ## Blocking Issues & Dependencies
 
-*As of the last update, there are no major blocking issues. The primary dependency is the timely completion of the econometric analysis to proceed with the final write-up.*
+*As of the last update, there are no major blocking issues. The primary dependency is the timely completion of the econometric analysis to proceed with the final write-up. Outlier filtering rules and sector-specific cleaning recommendations from the exploratory analysis must be implemented before final model estimation.*
