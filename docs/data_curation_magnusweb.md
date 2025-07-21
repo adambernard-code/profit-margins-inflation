@@ -207,14 +207,6 @@ Below is a structured overview of every column in the panel dataset, grouped by 
 | `interest_coverage_cal`    | `oper_profit / net_interest_expense_cal`         | Interest coverage ratio                  |
 | `effective_tax_rate_cal`   | `(profit_pre_tax - profit_net) / profit_pre_tax` | Effective tax rate                       |
 
-#### 3.4 Growth Dynamics (YoY)
-
-| Column                 | Formula                              | Description                          |
-| ---------------------- | ------------------------------------ | ------------------------------------ |
-| `rev_growth_cal`       | `pct_change(sales_revenue) over ico` | Year-on-year revenue growth          |
-| `cost_growth_cal`      | `pct_change(costs) over ico`         | Year-on-year cost growth             |
-| `op_profit_growth_cal` | `pct_change(oper_profit) over ico`   | Year-on-year operating profit growth |
-
 #### 3.5 Efficiency & Scale Metrics
 
 | Column                   | Formula                         | Description                                       |
