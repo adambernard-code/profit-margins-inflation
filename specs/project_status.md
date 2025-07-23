@@ -6,7 +6,7 @@ This document provides a high-level overview of the current status of the "Profi
 
 ## Summary of Progress
 
-The project has transitioned from data acquisition and curation to advanced econometric analysis. All foundational data work is complete, and the merged panel dataset now includes robust growth rate variables for firm, sector, and macro domains, as documented in the updated data inventory.
+The project is in the advanced stage of econometric analysis. All foundational data work is complete, and the merged panel dataset includes robust growth rate variables for firm, sector, and macro domains, as documented in the updated data inventory.
 
 - **Completed Features:**
   - **Data Curation:** All primary data sources (MagnusWeb, CZSO, OECD, CNB, Eurostat) have been acquired, processed, and cleaned. Firm-level, sectoral, and macroeconomic variables are fully integrated.
@@ -14,20 +14,21 @@ The project has transitioned from data acquisition and curation to advanced econ
   - **Data Merging:** All curated datasets have been successfully merged into a single, analysis-ready panel dataset (`merged_panel_final.parquet`).
   - **Growth Rate Transformations:** Log year-over-year growth, percentage change, and difference in percentage points variables have been generated for all relevant domains. Documentation and inventory have been updated.
   - **Exploratory Analysis:** Comprehensive exploratory analysis completed in `00_exploratory_analysis_winsorized.ipynb`, covering descriptive statistics, time-series diagnostics, cross-sectional heterogeneity, panel persistence, bivariate relationships, multivariate structure (correlation/PCA), and outlier/influence checks. Data quality recommendations and cleaning rules have been formulated.
+  - **Econometric Analysis:** The main panel analysis (`src_03_analysis/01_panel.py`) implements all core and advanced econometric models, including dynamic panel regressions, heterogeneity analysis, sector-level decomposition, event study, robustness checks (Driscoll-Kraay and two-way clustered SEs), pass-through mechanism tests, and macro-level causality analysis. All code is in sync with project specifications and reproducibility standards.
 
 - **In-Progress Tasks:**
-  - **Econometric Analysis:** Panel regression modeling is underway, using the enriched and cleaned dataset. Model specifications and diagnostics are being iterated for validity and robustness, with dynamic panel methods (Arellano-Bond GMM) planned based on persistence findings.
-  - **Results Interpretation:** Analytical results are being interpreted in the context of the research questions and hypotheses.
+  - **Results Interpretation:** Analytical results are being interpreted in the context of the research questions and hypotheses. Final write-up of results and policy implications is underway.
+  - **Final Plots and Tables:** Generation of publication-ready figures and tables for the thesis is ongoing.
 
 - **Upcoming Milestones:**
-  - Finalize all econometric models and robustness checks (including alternative outlier filters).
-  - Generate all plots and tables for the final thesis.
+  - Finalize all econometric models and robustness checks (including alternative outlier filters, if needed).
+  - Complete all plots and tables for the final thesis.
   - Write the methodology and results chapters of the thesis.
   - Draft the final conclusion and policy recommendations.
 
 ## Component Status
 
-This table tracks the status of the major components (Jupyter notebooks) in the project's workflow.
+This table tracks the status of the major components (Jupyter notebooks and scripts) in the project's workflow.
 
 | Component / Notebook                               | Status        | Code Path                                                                                             |
 | -------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------- |
@@ -43,10 +44,11 @@ This table tracks the status of the major components (Jupyter notebooks) in the 
 | **Analysis**                                       |               |                                                                                                       |
 | `00_exploratory_analysis.ipynb`                    | ❌ Deprecated  | [src_03_analysis/00_exploratory_analysis.ipynb](../src_03_analysis/00_exploratory_analysis.ipynb) |
 | `00_exploratory_analysis_winsorized.ipynb`         | ✅ Done        | [src_03_analysis/00_exploratory_analysis_winsorized.ipynb](../src_03_analysis/00_exploratory_analysis_winsorized.ipynb) |
-| `01_firm_level_panel.ipynb`                        | 🔄 In Progress | [src_03_analysis/01_firm_level_panel.ipynb](../src_03_analysis/01_firm_level_panel.ipynb) |
+| `01_panel.py`                                      | 🔄 In Progress (Advanced) | [src_03_analysis/01_panel.py](../src_03_analysis/01_panel.py) |
+| `01_firm_level_panel.ipynb`                        | ❌ Deprecated  | [src_03_analysis/01_firm_level_panel.ipynb](../src_03_analysis/01_firm_level_panel.ipynb) |
 | `02_sector_level_analysis.ipynb`                   | 🔄 In Progress | [src_03_analysis/02_sector_level_analysis.ipynb](../src_03_analysis/02_sector_level_analysis.ipynb) |
 | `03_marco_analysis.ipynb`                          | ❌ Planned    | [src_03_analysis/03_marco_analysis.ipynb](../src_03_analysis/03_marco_analysis.ipynb) |
 
 ## Blocking Issues & Dependencies
 
-*As of the last update, there are no major blocking issues. The primary dependency is the timely completion of the econometric analysis to proceed with the final write-up. Outlier filtering rules and sector-specific cleaning recommendations from the exploratory analysis must be implemented before final model estimation.*
+*As of the last update, there are no major blocking issues. The primary dependency is the timely completion of the econometric analysis and final interpretation. All code is in sync with the latest specifications and data inventory. Outlier filtering rules and sector-specific cleaning recommendations from the exploratory analysis have been implemented in the main analysis script.*
