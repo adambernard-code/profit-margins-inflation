@@ -1362,3 +1362,349 @@ if 'sectors_to_run' in locals():
 else:
     print("Sector list not found. Skipping sectoral analysis.")
 # %%
+# %% [markdown]
+# ## 13. Advanced Econometrics: Endogenous Structural Break Test (Final Corrected)
+#
+# This final corrected version implements the sup-F test using the correct attributes for the `linearmodels` library.
+
+# %%
+print("\n" + "="*60)
+print("RUNNING ENDOGENOUS STRUCTURAL BREAK TEST (SUP-F) - FINAL CORRECTED")
+print("="*60)
+
+# --- Step 1: Define the sample and trimming period ---
+df_break_test = df_reg.sort_index(level='year')
+years = df_break_test.index.get_level_values('year').unique().sort_values()
+
+trim_frac = 0.15
+start_year = years[int(len(years) * trim_frac)]
+end_year = years[int(len(years) * (1 - trim_frac))]
+potential_break_years = range(start_year, end_year + 1)
+
+print(f"Testing for a single structural break in the years: {list(potential_break_years)}")
+
+f_statistics = []
+
+# --- Step 2 & 3: Iterate and manually compute F-statistics ---
+exog_vars_restricted = exog_vars_dynamic
+
+for break_year in potential_break_years:
+    print(f"  - Testing for break in year {break_year}...")
+    
+    df_temp = df_break_test.copy()
+    
+    df_temp['post_break'] = (df_temp.index.get_level_values('year') > break_year).astype(int)
+    df_temp['inflation_x_break'] = df_temp['inflation_rate'] * df_temp['post_break']
+    exog_vars_unrestricted = exog_vars_dynamic + ['inflation_x_break']
+    
+    df_loop_sample = df_temp.dropna(subset=exog_vars_unrestricted)
+    
+    # Fit the UNRESTRICTED model
+    mod_unrestricted = PanelOLS(df_loop_sample[dependent], df_loop_sample[exog_vars_unrestricted], entity_effects=True)
+    res_unrestricted = mod_unrestricted.fit(cov_type='clustered', cluster_entity=True, cluster_time=True)
+    
+    # Fit the RESTRICTED model on the SAME sample
+    mod_restricted = PanelOLS(df_loop_sample[dependent], df_loop_sample[exog_vars_restricted], entity_effects=True)
+    res_restricted = mod_restricted.fit(cov_type='clustered', cluster_entity=True, cluster_time=True)
+    
+    # Manually calculate the F-statistic
+    ssr_u = res_unrestricted.resid_ss
+    ssr_r = res_restricted.resid_ss
+    q = 1
+    n = res_unrestricted.nobs
+    k = res_unrestricted.df_model # CORRECTED ATTRIBUTE
+    
+    f_stat = ((ssr_r - ssr_u) / q) / (ssr_u / (n - k))
+    
+    f_statistics.append({'year': break_year, 'f_stat': f_stat})
+
+# --- Step 4: Find the Maximum F-statistic ---
+if f_statistics:
+    results_break_df = pd.DataFrame(f_statistics)
+    best_break_year = results_break_df.loc[results_break_df['f_stat'].idxmax()]
+    
+    print("\n" + "="*60)
+    print("STRUCTURAL BREAK TEST RESULTS")
+    print("="*60)
+    print(f"The maximum F-statistic occurred in the year: {int(best_break_year['year'])}")
+    print(f"Maximum F-statistic value: {best_break_year['f_stat']:.4f}")
+    
+    print("\nNOTE: A high F-statistic provides strong evidence for a structural break at this date.")
+    print("Formal significance requires comparison to non-standard critical values, but this identifies the most likely break point.")
+    
+    # --- Visualization of F-statistics ---
+    fig, ax = plt.subplots(figsize=(12, 7))
+    ax.plot(results_break_df['year'], results_break_df['f_stat'], marker='o', linestyle='-')
+    ax.axvline(x=best_break_year['year'], color='red', linestyle='--', label=f"Most Likely Break ({int(best_break_year['year'])})")
+    ax.set_xlabel("Potential Break Year")
+    ax.set_ylabel("F-statistic for Structural Change")
+    ax.set_title("Sup-F Test for Structural Break in Inflation Coefficient", fontsize=16, fontweight='bold')
+    ax.legend()
+    ax.grid(True)
+    plt.savefig(PLOTS_PATH / "structural_break_test.png")
+    plt.show()
+else:
+    print("Break test did not run. Check data and year range.")
+# %%
+print (f"Results DataFrame:\n{results_break_df.round(4)}")
+
+# %% [markdown]
+# ## 13. Advanced Econometrics: Endogenous Structural Break Test (Focused)
+#
+# The previous test correctly identified the 2007/08 GFC as the largest structural break in the 20-year sample. However, our research question is about the recent 2021-23 episode.
+#
+# We now run a more focused test on the post-2015 period to identify the most likely break point *within the recent crisis window*.
+
+# %%
+print("\n" + "="*60)
+print("RUNNING FOCUSED STRUCTURAL BREAK TEST (POST-2015)")
+print("="*60)
+
+# --- Step 1: Define the FOCUSED sample and trimming period ---
+# We restrict the analysis to the more recent economic regime
+FOCUS_START_YEAR = 2012
+df_break_test_focused = df_reg[df_reg.index.get_level_values('year') >= FOCUS_START_YEAR].sort_index(level='year')
+years_focused = df_break_test_focused.index.get_level_values('year').unique().sort_values()
+
+# Standard 15% trimming on the NEW, shorter sample
+trim_frac_focused = 0.15
+start_year_focused = years_focused[int(len(years_focused) * trim_frac_focused)]
+end_year_focused = years_focused[int(len(years_focused) * (1 - trim_frac_focused))]
+potential_break_years_focused = range(start_year_focused, end_year_focused + 1)
+
+print(f"Testing for a single structural break in the years: {list(potential_break_years_focused)}")
+
+f_statistics_focused = []
+
+# --- Step 2 & 3: Iterate and manually compute F-statistics ---
+exog_vars_restricted = exog_vars_dynamic
+
+for break_year in potential_break_years_focused:
+    print(f"  - Testing for break in year {break_year}...")
+    
+    df_temp = df_break_test_focused.copy()
+    
+    df_temp['post_break'] = (df_temp.index.get_level_values('year') > break_year).astype(int)
+    df_temp['inflation_x_break'] = df_temp['inflation_rate'] * df_temp['post_break']
+    exog_vars_unrestricted = exog_vars_dynamic + ['inflation_x_break']
+    
+    df_loop_sample = df_temp.dropna(subset=exog_vars_unrestricted)
+    
+    mod_unrestricted = PanelOLS(df_loop_sample[dependent], df_loop_sample[exog_vars_unrestricted], entity_effects=True)
+    res_unrestricted = mod_unrestricted.fit(cov_type='clustered', cluster_entity=True, cluster_time=True)
+    
+    mod_restricted = PanelOLS(df_loop_sample[dependent], df_loop_sample[exog_vars_restricted], entity_effects=True)
+    res_restricted = mod_restricted.fit(cov_type='clustered', cluster_entity=True, cluster_time=True)
+    
+    ssr_u = res_unrestricted.resid_ss
+    ssr_r = res_restricted.resid_ss
+    q = 1
+    n = res_unrestricted.nobs
+    k = res_unrestricted.df_model
+    
+    f_stat = ((ssr_r - ssr_u) / q) / (ssr_u / (n - k))
+    
+    f_statistics_focused.append({'year': break_year, 'f_stat': f_stat})
+
+# --- Step 4: Find the Maximum F-statistic in the focused period ---
+if f_statistics_focused:
+    results_break_df_focused = pd.DataFrame(f_statistics_focused)
+    best_break_year_focused = results_break_df_focused.loc[results_break_df_focused['f_stat'].idxmax()]
+    
+    print("\n" + "="*60)
+    print("FOCUSED STRUCTURAL BREAK TEST RESULTS")
+    print("="*60)
+    print(f"The maximum F-statistic occurred in the year: {int(best_break_year_focused['year'])}")
+    print(f"Maximum F-statistic value: {best_break_year_focused['f_stat']:.4f}")
+    
+    # --- Visualization of F-statistics ---
+    fig, ax = plt.subplots(figsize=(12, 7))
+    ax.plot(results_break_df_focused['year'], results_break_df_focused['f_stat'], marker='o', linestyle='-')
+    ax.axvline(x=best_break_year_focused['year'], color='red', linestyle='--', label=f"Most Likely Break ({int(best_break_year_focused['year'])})")
+    ax.set_xlabel("Potential Break Year")
+    ax.set_ylabel("F-statistic for Structural Change")
+    ax.set_title("Sup-F Test for Break in Inflation Coefficient (Post-2015 Sample)", fontsize=16, fontweight='bold')
+    ax.legend()
+    ax.grid(True)
+    plt.savefig(PLOTS_PATH / "structural_break_test_focused.png")
+    plt.show()
+else:
+    print("Focused break test did not run. Check data and year range.")
+# %%
+
+# %% [markdown]
+# ## 14. Reversing the Causality: The Role of Margins in Inflation
+#
+# To address the primary research question, we now shift the analysis. We treat inflation as the outcome variable and investigate the role of aggregate profit margins as a potential driver. This requires a time-series approach to handle endogeneity.
+#
+# ### Step 14.1: Aggregating Firm Margins to the Macro Level
+
+# %%
+print("\n" + "="*60)
+print("CREATING A REVENUE-WEIGHTED AGGREGATE PROFIT MARGIN SERIES")
+print("="*60)
+
+# We use the original, cleaned panel data before lags were created
+# Ensure 'firm_sales_revenue' is available
+if 'firm_sales_revenue' in df_panel_filtered.columns:
+    
+    # Calculate the total sales revenue for each year
+    total_revenue_by_year = (
+        df_panel_filtered
+        .group_by('year')
+        .agg(total_revenue=pl.col('firm_sales_revenue').sum())
+    )
+    
+    # Calculate the weighted margin
+    aggregate_margin_ts = (
+        df_panel_filtered
+        .join(total_revenue_by_year, on='year')
+        .with_columns(
+            # Calculate each firm's revenue weight in a given year
+            revenue_weight = pl.col('firm_sales_revenue') / pl.col('total_revenue')
+        )
+        .with_columns(
+            # Multiply the firm's margin by its weight
+            weighted_margin = pl.col('firm_operating_margin_cal') * pl.col('revenue_weight')
+        )
+        .group_by('year')
+        .agg(
+            # Sum the weighted margins to get the economy-wide average
+            aggregate_margin = pl.col('weighted_margin').sum()
+        )
+        .sort('year')
+        .to_pandas()
+        .set_index('year')
+    )
+    
+    print("Successfully created aggregate margin time series:")
+    print(aggregate_margin_ts.head())
+
+else:
+    print("Error: 'firm_sales_revenue' not found. Cannot create weighted margin.")
+# %%
+# %% [markdown]
+# ### Step 14.2: Estimating a VAR Model (Corrected)
+#
+# We use a VAR to model the dynamic interplay between aggregate margins, inflation, and other key macro variables. NOTE: Due to the short time series (approx. 20 years), we are restricted to a single lag.
+
+# %%
+from statsmodels.tsa.api import VAR
+
+print("\n" + "="*60)
+print("ESTIMATING THE TIME-SERIES VAR MODEL (CORRECTED)")
+print("="*60)
+
+# --- Prepare the data for the VAR model ---
+macro_ts = df_reg_final[['inflation_rate', 'unit_labor_cost', 'output_gap']].groupby('year').mean()
+var_data = aggregate_margin_ts.join(macro_ts).dropna()
+
+print("Final time-series data for VAR model:")
+print(var_data)
+
+# --- Estimate the VAR model ---
+# CORRECTED: With a short annual time series, maxlags must be small. 1 is the most robust choice.
+model = VAR(var_data)
+results = model.fit(maxlags=1) # CHANGED from 3 to 1
+print("\n" + "="*70)
+print("      VAR MODEL RESULTS SUMMARY (Lag Order = 1)")
+print("="*70)
+print(results.summary())
+
+
+# --- Analyze the VAR results ---
+print("\n" + "="*70)
+print("      1. GRANGER CAUSALITY TESTS")
+print("="*70)
+granger_test = results.test_causality('inflation_rate', ['aggregate_margin'], kind='f')
+print(f"\nTest: Do past margins help predict current inflation?")
+print(granger_test)
+
+
+print("\n" + "="*70)
+print("      2. IMPULSE RESPONSE FUNCTIONS (IRF)")
+print("="*70)
+irf = results.irf(5)
+irf.plot(orth=False, response='inflation_rate', impulse='aggregate_margin').suptitle(
+    'Response of Inflation to a Shock in Aggregate Profit Margins', fontsize=16
+)
+plt.show()
+
+
+print("\n" + "="*70)
+print("      3. FORECAST ERROR VARIANCE DECOMPOSITION (FEVD)")
+print("="*70)
+fevd = results.fevd(5)
+print(fevd.summary())
+# %%
+
+
+# %% [markdown]
+# ## 15. The Role of Margins in Inflation: GVA Decomposition
+#
+# We shift focus to test the role of profits in driving inflation. The first step is a standard macro accounting exercise to decompose domestic inflation (the GVA deflator) into contributions from labor costs and profits.
+
+# %%
+import pandas as pd
+import numpy as np
+
+# --- Step 1: Obtain and format the data from CZSO ---
+# YOU MUST OBTAIN THIS DATA. This is a placeholder example.
+# The data should be quarterly and not seasonally adjusted.
+# Index should be a DatetimeIndex.
+# GVA = Gross Value Added (Nominal)
+# WAGES = Compensation of Employees (Nominal)
+# GOS = Gross Operating Surplus & Mixed Income (Nominal)
+# GVA_REAL = Gross Value Added (Real, e.g., in 2015 prices)
+
+data = {
+    'GVA': [1200, 1250, 1300, 1350, 1250, 1300, 1350, 1400],
+    'WAGES': [600, 620, 640, 660, 630, 650, 670, 690],
+    'GOS': [500, 525, 550, 575, 520, 545, 570, 595],
+    'GVA_REAL': [1000, 1020, 1040, 1060, 1010, 1030, 1050, 1070]
+}
+# Example dates for 2 years of quarterly data
+dates = pd.to_datetime(['2021-03-31', '2021-06-30', '2021-09-30', '2021-12-31',
+                        '2022-03-31', '2022-06-30', '2022-09-30', '2022-12-31'])
+national_accounts = pd.DataFrame(data, index=dates)
+
+
+# --- Step 2: Calculate the GVA deflator and component contributions ---
+# GVA Deflator (P) = Nominal GVA / Real GVA
+national_accounts['GVA_DEFLATOR'] = national_accounts['GVA'] / national_accounts['GVA_REAL']
+
+# Year-over-year change in the deflator (our measure of domestic inflation)
+national_accounts['GVA_DEFLATOR_YOY'] = national_accounts['GVA_DEFLATOR'].pct_change(4) * 100
+
+# Calculate unit labour costs (ULC) and unit profits (UP)
+# Lagged GVA is used in the denominator as per convention
+national_accounts['ULC_CONTRIBUTION'] = (national_accounts['WAGES'].pct_change(4) * (national_accounts['WAGES'].shift(4) / national_accounts['GVA'].shift(4))) * 100
+national_accounts['GOS_CONTRIBUTION'] = (national_accounts['GOS'].pct_change(4) * (national_accounts['GOS'].shift(4) / national_accounts['GVA'].shift(4))) * 100
+
+# (Optional: Add taxes less subsidies if you have the data)
+
+# The sum of contributions should approximate the total GVA deflator inflation
+national_accounts['SUM_CONTRIBUTIONS'] = national_accounts['ULC_CONTRIBUTION'] + national_accounts['GOS_CONTRIBUTION']
+
+
+print("--- GVA Decomposition Results (Final two quarters of example) ---")
+print(national_accounts[['GVA_DEFLATOR_YOY', 'ULC_CONTRIBUTION', 'GOS_CONTRIBUTION', 'SUM_CONTRIBUTIONS']].dropna().round(2))
+
+# --- Step 3: Visualize the decomposition ---
+plot_data = national_accounts[['GVA_DEFLATOR_YOY', 'ULC_CONTRIBUTION', 'GOS_CONTRIBUTION']].dropna()
+
+fig, ax = plt.subplots(figsize=(12, 7))
+plot_data[['ULC_CONTRIBUTION', 'GOS_CONTRIBUTION']].plot(
+    kind='bar',
+    stacked=True,
+    ax=ax,
+    label=['Unit Labour Costs', 'Unit Profits']
+)
+ax.plot(plot_data.index, plot_data['GVA_DEFLATOR_YOY'], color='black', marker='o', label='GVA Deflator (YoY Inflation)')
+
+ax.set_ylabel("Percentage Points Contribution to YoY Inflation")
+ax.set_title("Decomposition of Domestic Inflation (GVA Deflator)", fontsize=16, fontweight='bold')
+ax.legend()
+plt.tight_layout()
+plt.show()
+# %%
