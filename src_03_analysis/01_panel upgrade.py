@@ -52,6 +52,44 @@ PLOTS_PATH.mkdir(exist_ok=True)
 print(f"Data path: {DATA_PATH}")
 print(f"Analysis period: {YEAR_START}-{YEAR_END}")
 
+# ------------------------------------------------------------------
+# 0.  MANUALLY‑ENTERED HICP SERIES  (ECB SDW – annual averages, % YoY)
+#      • core_inflation_rate  = HICP All-items excluding energy (ICP.A.CZ.N.XE0000.4.AVR)
+#      • energy_inflation_rate = HICP energy component HICP - Energy (ICP.A.CZ.N.NRGY00.4.AVR)
+# ------------------------------------------------------------------
+core_inflation_dict = {
+    1996: 14.7, 1997: 15.8, 1998: 18.2, 1999: 11.0, 2000: 3.5,
+    2001:  3.7, 2002:  1.3, 2003:  0.0, 2004:  2.4, 2005: 0.8,
+    2006:  0.8, 2007:  3.1, 2008:  5.4, 2009: 0.3, 2010: 0.7,
+    2011:  1.4, 2012:  2.8, 2013:  1.5, 2014: 1.1, 2015: 0.8,
+    2016:  1.2, 2017:  2.6, 2018:  1.8, 2019: 2.3, 2020: 3.9,
+    2021:  3.6, 2022: 12.5, 2023:  9.7, 2024: 2.7
+}
+
+energy_inflation_dict = {
+    2001: 10.3, 2002:  1.9, 2003: -0.7, 2004:  3.7, 2005:  6.4,
+    2006:  9.7, 2007:  2.2, 2008: 11.0, 2009:  2.7, 2010:  4.3,
+    2011:  7.2, 2012:  7.7, 2013:  0.6, 2014: -3.8, 2015: -3.0,
+    2016: -2.5, 2017:  1.2, 2018:  3.2, 2019:  4.8, 2020: -1.5,
+    2021:  1.7, 2022: 31.5, 2023: 25.5, 2024: 3.0
+}
+
+# Turn them into a DataFrame keyed by 'year'
+inflation_annual = (
+    pd.DataFrame({
+        'year': list(core_inflation_dict.keys()),
+        'core_inflation_rate': list(core_inflation_dict.values())
+    })
+    .merge(
+        pd.DataFrame({
+            'year': list(energy_inflation_dict.keys()),
+            'energy_prices_inflation': list(energy_inflation_dict.values())
+        }),
+        on='year',
+        how='outer'
+    )
+)
+# ------------------------------------------------------------------
 
 # %% [markdown]
 # ## 1. Load & Final Clean
@@ -93,7 +131,6 @@ print("CONSTRUCTING & CLEANING MODEL VARIABLES")
 print("="*60)
 
 # --- 2.1. Define Macro Shocks ---
-# Dictionary is defined as {'new_name': 'old_name'} for clarity
 macro_shocks_map = {
     'inflation_rate': 'mac_hicp_overall_roc',
     'policy_rate': 'mac_cnb_repo_rate_annual',
@@ -107,7 +144,8 @@ macro_shocks_map = {
 # --- 2.2. Create Core Model Variables ---
 df_final = (
     df_panel_filtered
-    .sort(FIRM_ID_COL, "year")
+    # CORRECTED SORTING ORDER FOR PCT_CHANGE OVER SECTOR
+    .sort("level1_nace_code", "year", FIRM_ID_COL)
     .with_columns([
         # OUTCOME: First-difference of the operating margin
         pl.col("firm_operating_margin_cal").diff(1).over(FIRM_ID_COL).alias("d_operating_margin"),
@@ -128,9 +166,13 @@ df_final = (
         .otherwise(None)
         .alias("leverage_ratio"),
 
-        # --- SECTOR-LEVEL CONTROL ---
-        # Sector-specific wage growth
-        (pl.col("sector_level1_avg_wages_by_nace").pct_change(1).over("year") * 100).alias("sector_wage_growth")
+        # --- SECTOR-LEVEL CONTROL (CORRECTED CALCULATION) ---
+        (
+            pl.col("sector_level1_avg_wages_by_nace")
+            .pct_change(1)
+            .over("level1_nace_code") # Group by sector to get YoY change for that sector
+            * 100
+        ).alias("sector_wage_growth")
     ])
     .with_columns([
         # ECM TERM 2: Lagged CHANGE in the operating margin
@@ -140,7 +182,6 @@ df_final = (
         pl.col("leverage_ratio").shift(1).over(FIRM_ID_COL).alias("l_leverage_ratio"),
         pl.col("log_assets").shift(1).over(FIRM_ID_COL).alias("l_log_assets"),
     ])
-    # CORRECTED LINE: Invert the dictionary to {'old_name': 'new_name'}
     .rename({v: k for k, v in macro_shocks_map.items()})
     .drop_nulls("d_operating_margin")
 )
@@ -163,29 +204,6 @@ for var in vars_to_winsorize:
 print("\n--- Descriptive Statistics (Post-Winsorization) ---")
 print(df_pd[vars_to_winsorize].describe().T[['mean', 'std', 'min', 'max']].round(3))
 
-# --- ADDED: Create an orthogonal core inflation variable ---
-import statsmodels.api as sm
-
-print("\n--- Creating Orthogonal Core Inflation (orthogonal to energy inflation) ---")
-# Use the final pandas dataframe before any regressions are run
-df_for_resid = df_pd[['inflation_rate', 'energy_prices_inflation']].dropna()
-
-# Check if there is enough data to proceed
-if not df_for_resid.empty:
-    X = sm.add_constant(df_for_resid['energy_prices_inflation'])
-    y = df_for_resid['inflation_rate']
-    resid_model = sm.OLS(y, X).fit()
-    
-    # Predict the component of headline inflation explained by energy
-    # and subtract it to get the residual (the orthogonal component)
-    df_pd['orthogonal_core'] = df_pd['inflation_rate'] - resid_model.predict(sm.add_constant(df_pd['energy_prices_inflation'], has_constant='add'))
-    
-    print("`orthogonal_core` created as the residual of inflation_rate ~ energy_prices_inflation.")
-    print(f"Correlation between orthogonal_core and energy_prices_inflation: {df_pd[['orthogonal_core', 'energy_prices_inflation']].corr().iloc[0,1]:.4f}")
-else:
-    print("Not enough data to create orthogonal_core.")
-
-
 
 # %% [markdown]
 # ## 3. Model Specification
@@ -193,6 +211,16 @@ else:
 # This section defines the dependent and independent variables used throughout the analysis. This centralizes the model specification, ensuring consistency across all subsequent tests.
 
 # %%
+
+# Attach annual inflation figures to each firm‑year observation
+df_pd = (
+    df_pd
+        .reset_index()                                 # 1 bring 'year' out of MultiIndex
+        .drop(columns=['energy_prices_inflation'])     # ← NEW: prevent duplicate column
+        .merge(inflation_annual, on='year', how='left')
+        .set_index([FIRM_ID_COL, 'year'])
+)
+
 # --- DEFINE ALL MODEL VARIABLES CENTRALLY ---
 dependent = 'd_operating_margin'
 
@@ -209,18 +237,18 @@ macro_shocks_base = ['policy_rate', 'import_price', 'fx_rate',
 # Specification with headline inflation
 macro_shocks_headline = macro_shocks_base + ['inflation_rate']
 
-# Preferred specification with orthogonal core inflation
-macro_shocks_core = macro_shocks_base + ['orthogonal_core']
+# Preferred specification with core inflation
+macro_shocks_core = macro_shocks_base + ['core_inflation_rate']
 
 
 # --- Define full regressor lists for different models ---
-# Final, preferred model specification using orthogonal core inflation
+# Final, preferred model specification using core inflation
 exog_vars_final = dynamic_terms + macro_shocks_core + firm_controls + sector_controls
 
 # Parsimonious set for the structural break test (using headline inflation)
 exog_vars_break_test = dynamic_terms + ['inflation_rate', 'policy_rate'] + firm_controls + sector_controls
 
-print("Model variable lists defined for headline and orthogonal core specifications.")
+print("Model variable lists defined for headline and core specifications.")
 
 
 # %% [markdown]
@@ -294,27 +322,30 @@ print(results_break_df.round(4))
 # The Sup-F test confirms significant structural instability around 2020. We now formally test if the inflation-margin relationship changed during the 2021-2023 episode using two interaction models to ensure robustness.
 
 # %% [markdown]
-# ### 5.1 Interaction with Orthogonal Core Inflation (Preferred Model)
+# ### 5.1 Interaction with Core Inflation (Preferred Model)
 #
-# This model tests for a structural break in the pass-through of **orthogonal core (non-energy) inflation**. It avoids omitted variable bias by keeping `energy_prices_inflation` as a control and eliminates multicollinearity by design. This is our preferred specification.
+# This model tests for a structural break in the pass-through of ** core (non-energy) inflation**. It avoids omitted variable bias by keeping `energy_prices_inflation` as a control and eliminates multicollinearity by design. This is our preferred specification.
 
 # %%
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 print("\n" + "="*60)
-print("TESTING FOR STRUCTURAL BREAK: ORTHOGONAL CORE INFLATION")
+print("TESTING FOR STRUCTURAL BREAK: CORE INFLATION")
 print("="*60)
 
 # Create the final regression sample based on the full model
 df_reg_final = df_pd.dropna(subset=[dependent] + exog_vars_final)
 df_interaction = df_reg_final.copy()
 
-# Create dummy and interaction term for ORTHOGONAL CORE inflation
+# Create dummy and interaction term for core inflation
 df_interaction['episode_21_23'] = df_interaction.index.get_level_values('year').isin([2021, 2022, 2023]).astype(int)
-df_interaction['orthogonal_core_x_episode'] = df_interaction['orthogonal_core'] * df_interaction['episode_21_23']
+df_interaction['core_x_episode'] = (df_interaction['core_inflation_rate']
+                                    * df_interaction['episode_21_23'])
 
-# Define exog variables for the CORE model
-exog_vars_interaction_core = dynamic_terms + macro_shocks_core + firm_controls + sector_controls + ['orthogonal_core_x_episode']
+# Exogenous list for core‑inflation interaction model
+exog_vars_interaction_core = (dynamic_terms + macro_shocks_core +
+                              firm_controls + sector_controls +
+                              ['core_x_episode'])
 
 # Run the PanelOLS model with Driscoll-Kraay SEs
 mod_interaction_core = PanelOLS(
@@ -414,8 +445,11 @@ for name, years in episode_definitions.items():
     df_temp['episode'] = df_temp.index.get_level_values('year').isin(years).astype(int)
     df_temp['inflation_x_episode'] = df_temp['inflation_rate'] * df_temp['episode']
     
-    exog_temp = [col for col in exog_vars_interaction if col not in ['inflation_x_episode', 'episode_21_23']] + ['inflation_x_episode']
-    
+    # use the HEADLINE interaction specification for all alternative episode windows
+    exog_temp = [c for c in exog_vars_interaction_headline
+                if c not in ['inflation_x_episode', 'episode_21_23']] \
+                + ['inflation_x_episode']
+
     mod_sens = PanelOLS(df_temp[dependent], df_temp.dropna(subset=exog_temp)[exog_temp], entity_effects=True)
     res_sens = mod_sens.fit(cov_type='driscoll-kraay', kernel='bartlett')
     
@@ -441,8 +475,12 @@ print("\n" + "="*60)
 print("ROBUSTNESS CHECK 3: TWO-WAY CLUSTERED STANDARD ERRORS")
 print("="*60)
 
-# Re-running the interaction model with two-way clustering
-res_interaction_tw = mod_interaction.fit(cov_type='clustered', cluster_entity=True, cluster_time=True)
+# Re‑estimate the headline‑interaction model with entity & time clustering
+res_interaction_tw = mod_interaction_headline.fit(
+    cov_type='clustered',
+    cluster_entity=True,
+    cluster_time=True
+)
 print("\n--- Interaction Model with Two-Way Clustering ---")
 print(res_interaction_tw.summary.tables[1])
 
@@ -466,21 +504,25 @@ mod_final = PanelOLS(
 res_final_dk = mod_final.fit(cov_type='driscoll-kraay', kernel='bartlett')
 print(res_final_dk.summary)
 
-# --- Final Verdict on the Energy Shock Narrative ---
+# %%
 print("\n" + "="*60)
-print("FINAL VERDICT ON THE ENERGY SHOCK NARRATIVE")
+print("FINAL VERDICT ON COST SHOCKS")
 print("="*60)
 
-p_val_energy = res_final_dk.pvalues['energy_prices_inflation']
-p_val_hicp = res_final_dk.pvalues['inflation_rate']
+def flag(p):         # ✓ if <5 %, ✗ otherwise
+    return "✓" if p < 0.05 else "✗"
 
-print(f"p-value for energy_prices_inflation: {p_val_energy:.4f}")
-print(f"p-value for inflation_rate (general): {p_val_hicp:.4f}")
+for var_label in ['energy_prices_inflation',
+                  'core_inflation_rate',
+                  'inflation_rate']:
+    if var_label in res_final_dk.params.index:
+        beta = res_final_dk.params[var_label]
+        pval = res_final_dk.pvalues[var_label]
+        nice_name = {'energy_prices_inflation': 'Energy inflation',
+                    'core_inflation_rate'    : 'Core (non‑energy) inflation',
+                    'inflation_rate'         : 'Headline inflation'}[var_label]
+        print(f"{nice_name:25s}: β = {beta: .4f},  p = {pval:.4f}  {flag(pval)}")
 
-if p_val_energy < 0.05 and p_val_hicp > 0.10:
-    print("\nCONCLUSION: Robustness confirmed. The energy shock is the primary, significant driver of margin changes, while general inflation is not significant.")
-else:
-    print("\nCONCLUSION: The story is more complex. Both energy and general inflation, or neither, may be significant drivers.")
 
 # %% [markdown]
 # ### 7.1 Heterogeneity Analysis: The Pass-Through Mechanism
@@ -532,6 +574,21 @@ if passthrough_results:
     print("           SUMMARY OF COMPREHENSIVE NACE LEVEL 2 CASE STUDY RESULTS")
     print("="*70)
     print(results_cs_df.round(4))
+
+# %% 
+print("\n" + "="*60)
+print("VIF CHECK FOR FINAL, FULLY-SPECIFIED MODEL")
+print("="*60)
+
+# Use the same data used in the regression
+vif_data_final = df_reg_final.dropna(subset=exog_vars_final)[exog_vars_final]
+vif_data_final_const = sm.add_constant(vif_data_final, prepend=False)
+
+vif_df_final = pd.DataFrame()
+vif_df_final["Variable"] = vif_data_final_const.columns
+vif_df_final["VIF"] = [variance_inflation_factor(vif_data_final_const.values, i) for i in range(vif_data_final_const.shape[1])]
+
+print(vif_df_final[vif_df_final["Variable"] != "const"].sort_values("VIF", ascending=False).round(2))
 
 # %% [markdown]
 # ### Final Visualization: Sector Archetypes
