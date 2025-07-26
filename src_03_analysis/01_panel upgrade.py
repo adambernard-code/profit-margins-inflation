@@ -151,7 +151,6 @@ macro_shocks_map = {
     'policy_rate': 'mac_cnb_repo_rate_annual',
     'import_price': 'mac_RPMGS_pct',
     'fx_rate': 'mac_fx_czk_eur_annual_avg_pct',
-    'energy_prices_inflation_old_series': 'mac_hicp_pure_energy_roc',
     'output_gap': 'mac_GAP',
     'fiscal_balance': 'mac_NLGXQ'
 }
@@ -226,12 +225,9 @@ print(df_pd[vars_to_winsorize].describe().T[['mean', 'std', 'min', 'max']].round
 df_pd = (
     df_pd
         .reset_index()                                 # 1 bring 'year' out of MultiIndex
-        #.drop(columns=['energy_prices_inflation'])     # ← NEW: prevent duplicate column
         .merge(inflation_annual, on='year', how='left')
         .set_index([FIRM_ID_COL, 'year'])
 )
-
-df_pd = df_pd.drop(columns=["energy_prices_inflation_old_series"])
 
 # --- DEFINE ALL MODEL VARIABLES CENTRALLY ---
 dependent = 'd_operating_margin'
@@ -537,50 +533,46 @@ for var_label in ['energy_prices_inflation',
 
 
 # %% [markdown]
-# ### 7.1 Heterogeneity Analysis: The Pass-Through Mechanism
-#
-# Having established the average relationships, we now test the core hypothesis of the paper: which sectors were able to pass through the energy cost shock by raising their own prices?
+# ### 7.1 Heterogeneity Analysis: The Pass-Through Mechanism (CORRECTED)
 
 # %%
 print("\n" + "="*60)
 print("COMPREHENSIVE NACE LEVEL 2 PASS-THROUGH ANALYSIS")
 print("="*60)
 
-exog_vars_passthrough_lean = [
-    'l_operating_margin', 'l_d_operating_margin', # Dynamic Terms
+# This is the corrected, lean list for THIS specific analysis
+exog_vars_passthrough = [
+    'l_operating_margin', 'l_d_operating_margin',   # Dynamic Terms
     'firm_age', 'l_log_assets', 'l_leverage_ratio', # Firm Controls
-    'sector_wage_growth',                         # Sector Labor Costs
-    'policy_rate', 'import_price', 'fx_rate', 'output_gap', 'fiscal_balance', # Other Macro Controls
-    #'energy_prices_inflation',                    # The SPECIFIC Cost Shock
-    'sector_level2_ppi_by_nace_pct'               # The SPECIFIC Pass-Through Mechanism
+    'sector_wage_growth',                           # Sector Labor Costs
+    'policy_rate', 'import_price', 'fx_rate', 'output_gap', 'fiscal_balance', # Macro Controls
+    'energy_prices_inflation',                      # The SPECIFIC Cost Shock
+    'sector_level2_ppi_by_nace_pct'                 # The SPECIFIC Pass-Through Mechanism
 ]
 
 # --- Step 1: Identify all sectors meeting the observation threshold ---
 MIN_OBS_FOR_SELECTION = 5000
-sector_counts_df = df_reg_final.groupby('level2_nace_code').size().loc[lambda x: x >= MIN_OBS_FOR_SELECTION]
-sectors_to_run = sector_counts_df.index.to_list()
+# Ensure df_reg_final is defined based on all necessary variables
+df_reg_final = df_pd.dropna(subset=[dependent] + exog_vars_passthrough)
+
+sector_counts = df_reg_final.groupby('level2_nace_code').size()
+sectors_to_run = sector_counts[sector_counts >= MIN_OBS_FOR_SELECTION].index.to_list()
 print(f"Identified {len(sectors_to_run)} sectors with at least {MIN_OBS_FOR_SELECTION:,} observations.")
 
 # --- Step 2: Run Pass-Through Model on all selected sectors ---
-exog_vars_passthrough_l2 = exog_vars_final + ['sector_level2_ppi_by_nace_pct']
 passthrough_results = []
-
-if 'level2_nace_en_name' in df_final.columns:
-    nace_level2_map = df_final.select(['level2_nace_code', 'level2_nace_en_name']).unique().to_pandas().set_index('level2_nace_code')['level2_nace_en_name'].to_dict()
-else:
-    nace_level2_map = {code: code for code in sectors_to_run}
+nace_level2_map = df_final.select(['level2_nace_code', 'level2_nace_en_name']).unique().to_pandas().set_index('level2_nace_code')['level2_nace_en_name'].to_dict()
 
 for code in sectors_to_run:
-    df_sector = df_reg_final[df_reg_final['level2_nace_code'] == code].dropna(subset=exog_vars_passthrough_l2)
-    
-    if len(df_sector) >= MIN_OBS_FOR_SELECTION:
-        sector_name = nace_level2_map.get(code, code)
-        print(f"\n--- Running Model for Sector: {sector_name} ({code}) ---")
-        
-        mod_pt = PanelOLS(df_sector[dependent], df_sector[exog_vars_passthrough_lean], entity_effects=True)
+    # No need to dropna again, df_reg_final is already clean for this model
+    df_sector = df_reg_final[df_reg_final['level2_nace_code'] == code]
+    sector_name = nace_level2_map.get(code, code)
+    print(f"\n--- Running Model for Sector: {sector_name} ({code}) ---")
+
+    try:
+        mod_pt = PanelOLS(df_sector[dependent], df_sector[exog_vars_passthrough], entity_effects=True)
         res_pt = mod_pt.fit(cov_type='driscoll-kraay', kernel='bartlett')
-        
-        # CORRECTED, ROBUST WAY TO COLLECT RESULTS
+
         passthrough_results.append({
             "Sector": sector_name,
             "Energy Shock Coeff.": res_pt.params.get('energy_prices_inflation', np.nan),
@@ -588,6 +580,8 @@ for code in sectors_to_run:
             "Sector PPI Coeff.": res_pt.params.get('sector_level2_ppi_by_nace_pct', np.nan),
             "p-value (PPI)": res_pt.pvalues.get('sector_level2_ppi_by_nace_pct', np.nan)
         })
+    except Exception as e:
+        print(f"🛑 MODEL FAILED for {sector_name}. Reason: {e}")
 
 # --- Display the results in a final, comprehensive summary table ---
 if passthrough_results:
@@ -595,11 +589,7 @@ if passthrough_results:
     print("\n" + "="*70)
     print("           SUMMARY OF COMPREHENSIVE NACE LEVEL 2 CASE STUDY RESULTS")
     print("="*70)
-    # The .dropna() here will show you only the sectors where the model ran successfully
-    print(results_cs_df.dropna().round(4))
-    print("\nSectors with NaN had collinearity issues and a variable was dropped:")
-    # This will show you which sectors failed
-    print(results_cs_df[results_cs_df.isnull().any(axis=1)])
+    print(results_cs_df.round(4))
 
 # %% 
 print("\n" + "="*60)
