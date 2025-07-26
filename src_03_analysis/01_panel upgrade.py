@@ -199,7 +199,7 @@ df_pd = df_final.to_pandas().set_index([FIRM_ID_COL, 'year'])
 print("\n--- Winsorizing data to handle extreme outliers ---")
 vars_to_winsorize = [
     'd_operating_margin', 'l_operating_margin', 'l_d_operating_margin',
-    'l_leverage_ratio', 'l_log_assets', 'sector_wage_growth'
+    'l_leverage_ratio', 'l_log_assets'
 ]
 for var in vars_to_winsorize:
     if var in df_pd.columns:
