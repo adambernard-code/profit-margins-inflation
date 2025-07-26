@@ -127,25 +127,45 @@ print(f"Unique firms retained: {df_panel_filtered[FIRM_ID_COL].n_unique():,}")
 
 # %%
 print("="*60)
-print("CONSTRUCTING & CLEANING MODEL VARIABLES")
+print("CONSTRUCTING & CLEANING MODEL VARIABLES (Corrected Wage Growth)")
 print("="*60)
 
-# --- 2.1. Define Macro Shocks ---
+# --- Step 1: Create a clean, de-duplicated time series of sectoral wages ---
+wage_ts = (
+    df_panel_filtered
+    .select(["year", "level1_nace_code", "sector_level1_avg_wages_by_nace"])
+    .unique()
+    .sort("level1_nace_code", "year")
+)
+
+# --- Step 2: Calculate the YoY growth rate correctly on the clean time series ---
+wage_ts_growth = wage_ts.with_columns(
+    (
+        pl.col("sector_level1_avg_wages_by_nace").pct_change(1).over("level1_nace_code") * 100
+    ).alias("sector_wage_growth")
+)
+
+# --- Step 3: Define Macro Shocks Map ---
 macro_shocks_map = {
     'inflation_rate': 'mac_hicp_overall_roc',
     'policy_rate': 'mac_cnb_repo_rate_annual',
     'import_price': 'mac_RPMGS_pct',
     'fx_rate': 'mac_fx_czk_eur_annual_avg_pct',
-    'energy_prices_inflation': 'mac_hicp_pure_energy_roc',
+    'energy_prices_inflation_old_series': 'mac_hicp_pure_energy_roc',
     'output_gap': 'mac_GAP',
     'fiscal_balance': 'mac_NLGXQ'
 }
 
-# --- 2.2. Create Core Model Variables ---
+# --- Step 4: Build the final DataFrame by joining the corrected wage growth ---
 df_final = (
     df_panel_filtered
-    # CORRECTED SORTING ORDER FOR PCT_CHANGE OVER SECTOR
-    .sort("level1_nace_code", "year", FIRM_ID_COL)
+    # Join the correctly calculated wage growth back to the main panel
+    .join(
+        wage_ts_growth.select(["year", "level1_nace_code", "sector_wage_growth"]),
+        on=["year", "level1_nace_code"],
+        how="left"
+    )
+    .sort(FIRM_ID_COL, "year") # Sort by firm and year for firm-level calcs
     .with_columns([
         # OUTCOME: First-difference of the operating margin
         pl.col("firm_operating_margin_cal").diff(1).over(FIRM_ID_COL).alias("d_operating_margin"),
@@ -153,26 +173,13 @@ df_final = (
         # ECM TERM 1: Lagged LEVEL of the operating margin
         pl.col("firm_operating_margin_cal").shift(1).over(FIRM_ID_COL).alias("l_operating_margin"),
 
-        # --- FIRM-LEVEL CONTROLS ---
-        # Firm Age
+        # FIRM-LEVEL CONTROLS
         (pl.col("year") - pl.col("firm_year_founded")).alias("firm_age"),
-
-        # Firm Size (Log of Total Assets)
         pl.col("firm_total_assets").log().alias("log_assets"),
-        
-        # Firm Leverage
         pl.when(pl.col("firm_total_liabilities_and_equity") > 0)
         .then((pl.col("firm_total_liabilities_and_equity") - pl.col("firm_equity")) / pl.col("firm_total_liabilities_and_equity"))
         .otherwise(None)
         .alias("leverage_ratio"),
-
-        # --- SECTOR-LEVEL CONTROL (CORRECTED CALCULATION) ---
-        (
-            pl.col("sector_level1_avg_wages_by_nace")
-            .pct_change(1)
-            .over("level1_nace_code") # Group by sector to get YoY change for that sector
-            * 100
-        ).alias("sector_wage_growth")
     ])
     .with_columns([
         # ECM TERM 2: Lagged CHANGE in the operating margin
@@ -186,20 +193,23 @@ df_final = (
     .drop_nulls("d_operating_margin")
 )
 
-# --- 2.3. Convert to Pandas & Winsorize Outliers ---
+# --- Step 5: Convert to Pandas & Winsorize Outliers ---
 df_pd = df_final.to_pandas().set_index([FIRM_ID_COL, 'year'])
 
 print("\n--- Winsorizing data to handle extreme outliers ---")
 vars_to_winsorize = [
     'd_operating_margin', 'l_operating_margin', 'l_d_operating_margin',
-    'l_leverage_ratio', 'l_log_assets'
+    'l_leverage_ratio', 'l_log_assets', 'sector_wage_growth'
 ]
 for var in vars_to_winsorize:
     if var in df_pd.columns:
-        lower_bound = df_pd[var].quantile(0.01)
-        upper_bound = df_pd[var].quantile(0.99)
-        df_pd[var] = df_pd[var].clip(lower=lower_bound, upper=upper_bound)
-        print(f"Variable '{var}' clipped between {lower_bound:.2f} and {upper_bound:.2f}")
+        # Important: drop NaNs before calculating quantiles
+        valid_data = df_pd[var].dropna()
+        if not valid_data.empty:
+            lower_bound = valid_data.quantile(0.01)
+            upper_bound = valid_data.quantile(0.99)
+            df_pd[var] = df_pd[var].clip(lower=lower_bound, upper=upper_bound)
+            print(f"Variable '{var}' clipped between {lower_bound:.2f} and {upper_bound:.2f}")
 
 print("\n--- Descriptive Statistics (Post-Winsorization) ---")
 print(df_pd[vars_to_winsorize].describe().T[['mean', 'std', 'min', 'max']].round(3))
@@ -216,10 +226,12 @@ print(df_pd[vars_to_winsorize].describe().T[['mean', 'std', 'min', 'max']].round
 df_pd = (
     df_pd
         .reset_index()                                 # 1 bring 'year' out of MultiIndex
-        .drop(columns=['energy_prices_inflation'])     # ← NEW: prevent duplicate column
+        #.drop(columns=['energy_prices_inflation'])     # ← NEW: prevent duplicate column
         .merge(inflation_annual, on='year', how='left')
         .set_index([FIRM_ID_COL, 'year'])
 )
+
+df_pd = df_pd.drop(columns=["energy_prices_inflation_old_series"])
 
 # --- DEFINE ALL MODEL VARIABLES CENTRALLY ---
 dependent = 'd_operating_margin'
@@ -534,6 +546,15 @@ print("\n" + "="*60)
 print("COMPREHENSIVE NACE LEVEL 2 PASS-THROUGH ANALYSIS")
 print("="*60)
 
+exog_vars_passthrough_lean = [
+    'l_operating_margin', 'l_d_operating_margin', # Dynamic Terms
+    'firm_age', 'l_log_assets', 'l_leverage_ratio', # Firm Controls
+    'sector_wage_growth',                         # Sector Labor Costs
+    'policy_rate', 'import_price', 'fx_rate', 'output_gap', 'fiscal_balance', # Other Macro Controls
+    #'energy_prices_inflation',                    # The SPECIFIC Cost Shock
+    'sector_level2_ppi_by_nace_pct'               # The SPECIFIC Pass-Through Mechanism
+]
+
 # --- Step 1: Identify all sectors meeting the observation threshold ---
 MIN_OBS_FOR_SELECTION = 5000
 sector_counts_df = df_reg_final.groupby('level2_nace_code').size().loc[lambda x: x >= MIN_OBS_FOR_SELECTION]
@@ -556,15 +577,16 @@ for code in sectors_to_run:
         sector_name = nace_level2_map.get(code, code)
         print(f"\n--- Running Model for Sector: {sector_name} ({code}) ---")
         
-        mod_pt = PanelOLS(df_sector[dependent], df_sector[exog_vars_passthrough_l2], entity_effects=True)
+        mod_pt = PanelOLS(df_sector[dependent], df_sector[exog_vars_passthrough_lean], entity_effects=True)
         res_pt = mod_pt.fit(cov_type='driscoll-kraay', kernel='bartlett')
         
+        # CORRECTED, ROBUST WAY TO COLLECT RESULTS
         passthrough_results.append({
             "Sector": sector_name,
-            "Energy Shock Coeff.": res_pt.params['energy_prices_inflation'],
-            "p-value (Energy)": res_pt.pvalues['energy_prices_inflation'],
-            "Sector PPI Coeff.": res_pt.params['sector_level2_ppi_by_nace_pct'],
-            "p-value (PPI)": res_pt.pvalues['sector_level2_ppi_by_nace_pct']
+            "Energy Shock Coeff.": res_pt.params.get('energy_prices_inflation', np.nan),
+            "p-value (Energy)": res_pt.pvalues.get('energy_prices_inflation', np.nan),
+            "Sector PPI Coeff.": res_pt.params.get('sector_level2_ppi_by_nace_pct', np.nan),
+            "p-value (PPI)": res_pt.pvalues.get('sector_level2_ppi_by_nace_pct', np.nan)
         })
 
 # --- Display the results in a final, comprehensive summary table ---
@@ -573,7 +595,11 @@ if passthrough_results:
     print("\n" + "="*70)
     print("           SUMMARY OF COMPREHENSIVE NACE LEVEL 2 CASE STUDY RESULTS")
     print("="*70)
-    print(results_cs_df.round(4))
+    # The .dropna() here will show you only the sectors where the model ran successfully
+    print(results_cs_df.dropna().round(4))
+    print("\nSectors with NaN had collinearity issues and a variable was dropped:")
+    # This will show you which sectors failed
+    print(results_cs_df[results_cs_df.isnull().any(axis=1)])
 
 # %% 
 print("\n" + "="*60)
