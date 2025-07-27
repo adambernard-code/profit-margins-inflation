@@ -553,9 +553,9 @@ exog_vars_passthrough = [
 # --- Step 1: Identify all sectors meeting the observation threshold ---
 MIN_OBS_FOR_SELECTION = 5000
 # Ensure df_reg_final is defined based on all necessary variables
-df_reg_final = df_pd.dropna(subset=[dependent] + exog_vars_passthrough)
+df_passthrough_sample = df_pd.dropna(subset=[dependent] + exog_vars_passthrough)
 
-sector_counts = df_reg_final.groupby('level2_nace_code').size()
+sector_counts = df_passthrough_sample.groupby('level2_nace_code').size()
 sectors_to_run = sector_counts[sector_counts >= MIN_OBS_FOR_SELECTION].index.to_list()
 print(f"Identified {len(sectors_to_run)} sectors with at least {MIN_OBS_FOR_SELECTION:,} observations.")
 
@@ -564,8 +564,8 @@ passthrough_results = []
 nace_level2_map = df_final.select(['level2_nace_code', 'level2_nace_en_name']).unique().to_pandas().set_index('level2_nace_code')['level2_nace_en_name'].to_dict()
 
 for code in sectors_to_run:
-    # No need to dropna again, df_reg_final is already clean for this model
-    df_sector = df_reg_final[df_reg_final['level2_nace_code'] == code]
+    # No need to dropna again, df_passthrough_sample is already clean for this model
+    df_sector = df_passthrough_sample[df_passthrough_sample['level2_nace_code'] == code]
     sector_name = nace_level2_map.get(code, code)
     print(f"\n--- Running Model for Sector: {sector_name} ({code}) ---")
 
@@ -591,13 +591,14 @@ if passthrough_results:
     print("="*70)
     print(results_cs_df.round(4))
 
-# %% 
+# %%
 print("\n" + "="*60)
 print("VIF CHECK FOR FINAL, FULLY-SPECIFIED MODEL")
 print("="*60)
 
-# Use the same data used in the regression
-vif_data_final = df_reg_final.dropna(subset=exog_vars_final)[exog_vars_final]
+# Use the data and variables from the model estimated in the PREVIOUS cell (mod_final)
+# That model was run on df_reg_final with exog_vars_final.
+vif_data_final = df_reg_final[exog_vars_final]
 vif_data_final_const = sm.add_constant(vif_data_final, prepend=False)
 
 vif_df_final = pd.DataFrame()
