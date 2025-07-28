@@ -696,3 +696,280 @@ if passthrough_results:
     plt.savefig(PLOTS_PATH / "final_passthrough_archetypes.png")
     plt.show()
 
+# %% [markdown]
+# ## 4. Justification: Endogenous Structural Break Test (Sup-F Test)
+#
+# Before analyzing the 2021-2023 period, we first formally test for the presence of a structural break in the relationship between inflation and profit margins. We use the Andrews (1993) sup-F test to endogenously identify the most likely break date, which provides a data-driven justification for our focus on the recent episode.
+
+# %%
+# This code block is updated to add the critical value line to the plot.
+# The calculation part remains the same.
+
+print("\n" + "="*60)
+print("RUNNING ENDOGENOUS STRUCTURAL BREAK TEST (SUP-F)")
+print("="*60)
+
+# --- Create the sample for the break test ---
+df_break_test_base = df_pd.dropna(subset=[dependent] + exog_vars_break_test)
+
+# --- Test 1: Full Sample Analysis (2003-2023) ---
+print("\n--- [Test 1] Full Sample Analysis ---")
+df_break_test_full = df_break_test_base.sort_index(level='year')
+years = df_break_test_full.index.get_level_values('year').unique().sort_values()
+
+trim_frac = 0.15
+start_year = years[int(len(years) * trim_frac)]
+end_year = years[int(len(years) * (1 - trim_frac))]
+potential_break_years = range(start_year, end_year + 1)
+print(f"Testing for a break in the years: {list(potential_break_years)}")
+
+f_statistics = []
+for break_year in potential_break_years:
+    df_temp = df_break_test_full.copy()
+    df_temp['post_break'] = (df_temp.index.get_level_values('year') > break_year).astype(int)
+    df_temp['inflation_x_break'] = df_temp['inflation_rate'] * df_temp['post_break']
+    exog_unrestricted = exog_vars_break_test + ['inflation_x_break']
+    df_loop_sample = df_temp.dropna(subset=exog_unrestricted)
+    
+    mod_unrestricted = PanelOLS(df_loop_sample[dependent], df_loop_sample[exog_unrestricted], entity_effects=True)
+    res_unrestricted = mod_unrestricted.fit(cov_type='clustered', cluster_entity=True)
+    
+    mod_restricted = PanelOLS(df_loop_sample[dependent], df_loop_sample[exog_vars_break_test], entity_effects=True)
+    res_restricted = mod_restricted.fit(cov_type='clustered', cluster_entity=True)
+    
+    ssr_u, ssr_r = res_unrestricted.resid_ss, res_restricted.resid_ss
+    q, n, k = 1, res_unrestricted.nobs, res_unrestricted.df_model
+    f_stat = ((ssr_r - ssr_u) / q) / (ssr_u / (n - k))
+    f_statistics.append({'year': break_year, 'f_stat': f_stat})
+
+if f_statistics:
+    results_break_df = pd.DataFrame(f_statistics)
+    best_break_year = results_break_df.loc[results_break_df['f_stat'].idxmax()]
+    print(f"\nMost Likely Break Year (Full Sample): {int(best_break_year['year'])} with F-statistic: {best_break_year['f_stat']:.2f}")
+
+    # Visualization with Critical Value
+    fig, ax = plt.subplots(figsize=(12, 7))
+    ax.plot(results_break_df['year'], results_break_df['f_stat'], marker='o', linestyle='-')
+    ax.axvline(x=best_break_year['year'], color='red', linestyle='--', label=f"Most Likely Break ({int(best_break_year['year'])})")
+    
+    # ADDED: Critical value line for significance
+    crit_val_1pct = 12.16 # Approximate 1% critical value from Andrews (1993)
+    ax.axhline(y=crit_val_1pct, color='black', linestyle=':', label=f"1% Critical Value ({crit_val_1pct})")
+    
+    ax.set_title("Sup-F Test for Structural Break in Inflation Coefficient (Full Sample)", fontsize=16, fontweight='bold')
+    ax.set_xlabel("Potential Break Year")
+    ax.set_ylabel("F-statistic")
+    ax.legend()
+    plt.savefig(PLOTS_PATH / "structural_break_test_full.png")
+    plt.show()
+
+# print statistics for the full sample
+print("\n--- Summary of Full Sample Sup-F Test ---")
+print(results_break_df.round(4))
+# %%
+
+
+# %% [markdown]
+# ### Final Visualization: Sector Archetypes
+#
+# This plot is the final piece of evidence. It maps each sector based on its sensitivity to the **energy shock** (x-axis) versus its ability to **raise its own prices** (y-axis, the coefficient on sector PPI). This visually separates the economy into three archetypes:
+# * **Pass-Through Champions (Green)**: Insulated from the energy shock and able to raise their own prices.
+# * **Squeezed but Resilient (Orange)**: Hurt by the energy shock, but also able to raise prices, suggesting they passed on some costs.
+# * **Cost Absorbers / Puzzles (Red)**: All other sectors, including those hurt by energy costs but unable to raise prices.
+
+# %%
+# --- Visualization: The Pass-Through Mechanism Scatter Plot ---
+if passthrough_results:
+    fig, ax = plt.subplots(figsize=(12, 9))
+
+    # **FIXED LOGIC**: Define archetypes based on both SIGN and SIGNIFICANCE of coefficients
+    # This aligns the colors with the four quadrants of the plot.
+    conditions = [
+        # Squeezed but Resilient (Top-Left): Sig. negative energy shock, sig. positive PPI pass-through
+        (results_cs_df['Energy Shock Coeff.'] < 0) & (results_cs_df['p-value (Energy)'] < 0.05) &
+        (results_cs_df['Sector PPI Coeff.'] > 0) & (results_cs_df['p-value (PPI)'] < 0.05),
+        
+        # Pass-Through Champions (Top-Right): Insignificant energy shock, sig. positive PPI pass-through
+        (results_cs_df['p-value (Energy)'] >= 0.05) &
+        (results_cs_df['Sector PPI Coeff.'] > 0) & (results_cs_df['p-value (PPI)'] < 0.05)
+    ]
+    choices = ['orange', 'green'] # Orange = Squeezed, Green = Champions
+    results_cs_df['Archetype'] = np.select(conditions, choices, default='darkred') # Default = Cost Absorbers / Puzzles
+
+    # Create the scatter plot
+    sns.scatterplot(
+        data=results_cs_df,
+        x='Energy Shock Coeff.',
+        y='Sector PPI Coeff.',
+        hue='Archetype',
+        palette={'green': 'green', 'orange': 'orange', 'darkred': 'darkred'},
+        s=150,
+        alpha=0.8,
+        ax=ax
+    )
+
+    # Add labels
+    for i, row in results_cs_df.iterrows():
+        ax.text(row['Energy Shock Coeff.'] + 0.005, row['Sector PPI Coeff.'], i, fontsize=9)
+
+    ax.axvline(x=0, color='black', linestyle=':', alpha=0.5)
+    ax.axhline(y=0, color='black', linestyle=':', alpha=0.5)
+    
+    ax.set_xlabel('Energy Shock Impact (Margin Squeeze)')
+    ax.set_ylabel('Pass-Through Ability (PPI Coefficient)')
+    ax.set_title('Sector Archetypes: Mapping the Energy Crisis Response', fontsize=16, fontweight='bold')
+
+    # Update legend
+    handles, labels = ax.get_legend_handles_labels()
+    label_map = {'green': 'Pass-Through Champions', 'orange': 'Squeezed but Resilient', 'darkred': 'Cost Absorbers / Puzzles'}
+    ax.legend(handles, [label_map[l] for l in labels], title='Archetype')
+    
+    plt.tight_layout()
+    plt.savefig(PLOTS_PATH / "final_passthrough_archetypes.png")
+    plt.show()
+# %%
+# %% [markdown]
+# ### New Visualization: Marginal Effects of Core Inflation
+#
+# This plot visualizes the core finding from the interaction model. It shows the marginal effect of a 1 pp increase in core inflation on the change in operating margins, comparing the period *before* 2021 to the 2021-2023 episode. The "flip" from a statistically insignificant effect to a strong, positive one is the key takeaway.
+
+# %%
+# Extract coefficients and confidence intervals from the interaction model
+params = res_interaction_core.params
+conf = res_interaction_core.conf_int()
+
+# Pre-2021 effect
+pre_effect = params['core_inflation_rate']
+pre_ci = conf.loc['core_inflation_rate'].values
+
+# 2021-2023 effect (base + interaction)
+post_effect = params['core_inflation_rate'] + params['core_x_episode']
+# Variance of sum = Var(A) + Var(B) + 2*Cov(A,B)
+var_sum = (res_interaction_core.std_errors['core_inflation_rate']**2 +
+           res_interaction_core.std_errors['core_x_episode']**2 +
+           2 * res_interaction_core.cov.loc['core_inflation_rate', 'core_x_episode'])
+se_sum = np.sqrt(var_sum)
+post_ci = [post_effect - 1.96 * se_sum, post_effect + 1.96 * se_sum]
+
+effects = {
+    'Period': ['Pre-2021', '2021-2023 Episode'],
+    'Effect': [pre_effect, post_effect],
+    'lower_ci': [pre_ci[0], post_ci[0]],
+    'upper_ci': [pre_ci[1], post_ci[1]]
+}
+effects_df = pd.DataFrame(effects)
+
+# Plotting
+plt.figure(figsize=(8, 6))
+plt.errorbar(x=effects_df['Period'], y=effects_df['Effect'], 
+             yerr=[effects_df['Effect'] - effects_df['lower_ci'], effects_df['upper_ci'] - effects_df['Effect']],
+             fmt='o', markersize=10, capsize=5, color='darkblue', ecolor='lightblue', elinewidth=3)
+plt.axhline(0, color='black', linestyle='--', alpha=0.7)
+plt.title('Marginal Effect of Core Inflation on Operating Margin Growth', fontsize=16)
+plt.ylabel('Change in Operating Margin (pp)\nfor a 1 pp rise in Core Inflation')
+plt.grid(axis='y', linestyle=':', alpha=0.6)
+plt.savefig(PLOTS_PATH / "marginal_effect_core_inflation.png")
+plt.show()
+# %%
+# %% [markdown]
+# ### New Visualization: Coefficient Plot of Final ECM
+#
+# This plot summarizes the main drivers of profit margin changes from the final, fully-specified Error Correction Model (Table 5.4 in the thesis). It allows for a quick comparison of the magnitude and statistical significance of all variables in the model.
+
+# %%
+# Extract parameters and confidence intervals from the final model
+final_params = res_final_dk.params
+final_conf = res_final_dk.conf_int()
+
+# **FIX:** Use the correct column names 'lower' and 'upper' instead of 0 and 1.
+plot_data = pd.DataFrame({
+    'param': final_params,
+    'lower': final_conf['lower'],
+    'upper': final_conf['upper']
+}).reset_index()
+
+plot_data.rename(columns={'index': 'variable'}, inplace=True)
+
+# Filter out the intercept if it exists and sort by effect size
+plot_data = plot_data[plot_data['variable'] != 'Intercept'].sort_values('param')
+
+# Plotting
+plt.figure(figsize=(10, 8))
+plt.errorbar(x=plot_data['param'], y=plot_data['variable'], 
+             xerr=[plot_data['param'] - plot_data['lower'], plot_data['upper'] - plot_data['param']],
+             fmt='o', markersize=6, capsize=4, linestyle='None', color='black')
+plt.axvline(0, color='red', linestyle='--', alpha=0.7)
+plt.title('Coefficient Plot for Final Error Correction Model', fontsize=16)
+plt.xlabel('Coefficient Estimate (with 95% Confidence Interval)')
+plt.ylabel('Model Variable')
+plt.grid(axis='x', linestyle=':', alpha=0.6)
+plt.tight_layout()
+plt.savefig(PLOTS_PATH / "coefficient_plot_final_model.png")
+plt.show()
+
+# %%
+# %% [markdown]
+# ### Final Visualization: Sector Archetypes
+#
+# This plot is the final piece of evidence. It maps each sector based on its sensitivity to the **energy shock** (x-axis) versus its ability to **raise its own prices** (y-axis, the coefficient on sector PPI). This visually separates the economy into three archetypes.
+
+# %%
+# --- Visualization: The Pass-Through Mechanism Scatter Plot ---
+
+# CHANGED: Added import for adjust_text
+from adjustText import adjust_text
+
+if passthrough_results:
+    fig, ax = plt.subplots(figsize=(12, 9))
+
+    # Define archetypes based on both SIGN and SIGNIFICANCE of coefficients
+    conditions = [
+        # Squeezed but Resilient (Top-Left): Sig. negative energy shock, sig. positive PPI pass-through
+        (results_cs_df['Energy Shock Coeff.'] < 0) & (results_cs_df['p-value (Energy)'] < 0.05) &
+        (results_cs_df['Sector PPI Coeff.'] > 0) & (results_cs_df['p-value (PPI)'] < 0.05),
+        
+        # Pass-Through Champions (Top-Right): Insignificant energy shock, sig. positive PPI pass-through
+        (results_cs_df['p-value (Energy)'] >= 0.05) &
+        (results_cs_df['Sector PPI Coeff.'] > 0) & (results_cs_df['p-value (PPI)'] < 0.05)
+    ]
+    choices = ['orange', 'green'] # Orange = Squeezed, Green = Champions
+    results_cs_df['Archetype'] = np.select(conditions, choices, default='darkred') # Default = Cost Absorbers / Puzzles
+
+    # Create the scatter plot
+    sns.scatterplot(
+        data=results_cs_df,
+        x='Energy Shock Coeff.',
+        y='Sector PPI Coeff.',
+        hue='Archetype',
+        palette={'green': 'green', 'orange': 'orange', 'darkred': 'darkred'},
+        s=150,
+        alpha=0.8,
+        ax=ax
+    )
+
+    # CHANGED: Collect text labels in a list instead of plotting them directly
+    texts = []
+    for i, row in results_cs_df.iterrows():
+        # Shorten long sector names for better plotting
+        short_name = i.split('(')[0].strip()
+        texts.append(ax.text(row['Energy Shock Coeff.'], row['Sector PPI Coeff.'], short_name, fontsize=9))
+
+    ax.axvline(x=0, color='black', linestyle=':', alpha=0.5)
+    ax.axhline(y=0, color='black', linestyle=':', alpha=0.5)
+    
+    ax.set_xlabel('Energy Shock Impact (Margin Squeeze)')
+    ax.set_ylabel('Pass-Through Ability (PPI Coefficient)')
+    ax.set_title('Sector Archetypes: Mapping the Energy Crisis Response', fontsize=16, fontweight='bold')
+
+    # Update legend
+    handles, labels = ax.get_legend_handles_labels()
+    label_map = {'green': 'Pass-Through Champions', 'orange': 'Squeezed but Resilient', 'darkred': 'Cost Absorbers / Puzzles'}
+    ax.legend(handles, [label_map[l] for l in labels], title='Archetype')
+    
+    # CHANGED: Add the call to adjust_text to automatically position labels
+    adjust_text(texts, arrowprops=dict(arrowstyle='-', color='black', lw=0.5))
+    
+    plt.tight_layout()
+    plt.savefig(PLOTS_PATH / "final_passthrough_archetypes.png")
+    plt.show()
+# %%
