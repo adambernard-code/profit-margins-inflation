@@ -114,25 +114,43 @@ plt.show()
 # ## Figure 3.3: Correlation Matrix of Key Macroeconomic Variables (+ Core, + significance stars)
 
 # %%
+# Define macro variables and their new names for the plot
 macro_vars = ['mac_hicp_overall_roc','mac_hicp_pure_energy_roc',
               'mac_cnb_repo_rate_annual','mac_GAP','mac_NLGXQ',
               'mac_ULC','mac_RPMGS']
-rename = {'mac_hicp_overall_roc':'HICP','mac_hicp_pure_energy_roc':'Energy HICP',
-          'mac_cnb_repo_rate_annual':'Repo','mac_GAP':'Output Gap',
-          'mac_NLGXQ':'Prim.Bal','mac_ULC':'ULC','mac_RPMGS':'Import P'}
-macro_df = (df.select(macro_vars+['year']).unique()
-              .sort('year').to_pandas()
-              .drop(columns='year').rename(columns=rename))
-macro_df["Core"] = macro_df.index.map(core_inflation_dict).astype(float)
+rename = {'mac_hicp_overall_roc':'HICP','mac_hicp_pure_energy_roc':'Energy HICP',
+          'mac_cnb_repo_rate_annual':'Repo','mac_GAP':'Output Gap',
+          'mac_NLGXQ':'Prim.Bal','mac_ULC':'ULC','mac_RPMGS':'Import P'}
+
+# Create the base macro dataframe from the panel, keeping the 'year' column for the merge
+macro_df = (df.select(macro_vars + ['year']).unique()
+              .sort('year')
+              .to_pandas()
+              .rename(columns=rename))
+
+# Create a separate DataFrame for core inflation from the dictionary
+core_infl_df = pd.DataFrame(list(core_inflation_dict.items()), columns=['year', 'Core'])
+
+# **FIX:** Merge the core inflation data onto the macro dataframe using the 'year' column
+macro_df = pd.merge(macro_df, core_infl_df, on='year', how='left')
+
+# Drop the 'year' column now that the merge is complete
+macro_df = macro_df.drop(columns='year')
+
+# Calculate the correlation matrix
 corr = macro_df.corr()
 
+# --- Plotting ---
 fig, ax = plt.subplots(figsize=(10,8))
 sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", square=True,
             cbar_kws={"shrink":0.8}, ax=ax, annot_kws={"size":10})
+
+# Add significance stars for strong correlations
 for y in range(corr.shape[0]):
     for x in range(corr.shape[1]):
         if y != x and abs(corr.iloc[y, x]) > 0.5:
-            ax.scatter(x+0.5, y+0.5, s=55, c='black', marker='*')
+            ax.scatter(x + 0.5, y + 0.5, s=55, c='black', marker='*')
+            
 ax.set_title("Correlation Matrix of Key Macroeconomic Variables")
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
@@ -143,9 +161,10 @@ plt.show()
 
 # %% [markdown]
 # ------------------------------------------------------------------
-#  EXTRA EDA VISUALS  –  tenure, sector violins, rolling correlation
+#  EXTRA EDA VISUALS  –  tenure, sector violins, rolling correlation
 # ------------------------------------------------------------------
 
+# %%
 # === Firm Tenure Distribution =====================================
 print("Generating Firm‑Tenure distribution …")
 firm_tenure = (
@@ -160,8 +179,8 @@ bins = np.arange(0.5, max_years+1.5, 1)
 plt.figure(figsize=(12,7))
 sns.histplot(firm_tenure, x="years_in_panel", bins=bins, color="C0")
 median_tenure = firm_tenure["years_in_panel"].median()
-plt.axvline(median_tenure, color="red", ls="--", label=f"Median = {median_tenure:.0f}")
-plt.title("Distribution of Firm Tenure in Panel (2000–2023)", fontsize=16)
+plt.axvline(median_tenure, color="red", ls="--", label=f"Median = {median_tenure:.0f}")
+plt.title("Distribution of Firm Tenure in Panel (2000–2023)", fontsize=16)
 plt.xlabel("Years with Non‑missing Data")
 plt.ylabel("Number of Firms")
 plt.xticks(range(1, max_years+1))
@@ -196,7 +215,7 @@ order = (sector_df.groupby("level1_nace_en_name")["firm_operating_margin_cal"]
                    .index)
 
 fig, axes = plt.subplots(len(sentinel_years), 1, figsize=(14, 20), sharex=True)
-fig.suptitle("Operating Margin Distribution by Sector (Top 8 Sectors)", fontsize=18, y=1.02)
+fig.suptitle("Operating Margin Distribution by Sector (Top 8 Sectors)", fontsize=18, y=1.02)
 
 for i, yr in enumerate(sentinel_years):
     ax = axes[i]
@@ -204,8 +223,8 @@ for i, yr in enumerate(sentinel_years):
     sns.violinplot(ax=ax, data=yr_data,
                    x="level1_nace_en_name", y="firm_operating_margin_cal",
                    order=order, inner="quartile", scale="width", palette="viridis")
-    ax.set_title(f"Year {yr}", fontsize=14)
-    ax.set_ylabel("Operating Margin (%)")
+    ax.set_title(f"Year {yr}", fontsize=14)
+    ax.set_ylabel("Operating Margin (%)")
     ax.axhline(0, ls="--", c="red", alpha=0.6)
     ax.tick_params(axis="x", rotation=45)
 
@@ -214,7 +233,7 @@ plt.savefig(PLOTS_PATH/"sectoral_margin_violins.png", dpi=300)
 plt.show()
 
 
-# === 5‑Year Rolling Correlation (Margin vs HICP) ==================
+# === 5‑Year Rolling Correlation (Margin vs HICP) ==================
 print("Generating rolling correlation plot …")
 roll_df = plot_df[["year", "agg_margin", "hicp"]].set_index("year")
 roll_df["rolling_corr"] = roll_df["agg_margin"].rolling(window=5).corr(roll_df["hicp"])
@@ -225,7 +244,7 @@ plt.axhline(0, c="black", ls="--")
 plt.axhline(0.3, c="grey", ls=":", alpha=0.6)
 plt.axhline(-0.3, c="grey", ls=":", alpha=0.6)
 plt.ylim(-1, 1)
-plt.title("5‑Year Rolling Correlation – Operating Margin vs. HICP Inflation", fontsize=16)
+plt.title("5‑Year Rolling Correlation – Operating Margin vs. HICP Inflation", fontsize=16)
 plt.xlabel("Year (end of 5‑yr window)")
 plt.ylabel("Correlation Coefficient")
 plt.grid(True, alpha=0.4)
@@ -234,5 +253,3 @@ plt.savefig(PLOTS_PATH/"rolling_correlation_margin_hicp.png", dpi=300)
 plt.show()
 
 print("✓  Extra EDA figures saved in", PLOTS_PATH.resolve())
-
-# %%
