@@ -179,6 +179,10 @@ df_final = (
         .then((pl.col("firm_total_liabilities_and_equity") - pl.col("firm_equity")) / pl.col("firm_total_liabilities_and_equity"))
         .otherwise(None)
         .alias("leverage_ratio"),
+
+        # sales growth 
+        (pl.col("firm_sales_revenue").log().diff(1).over(FIRM_ID_COL)*100).alias("sales_growth"),
+
     ])
     .with_columns([
         # ECM TERM 2: Lagged CHANGE in the operating margin
@@ -198,7 +202,7 @@ df_pd = df_final.to_pandas().set_index([FIRM_ID_COL, 'year'])
 print("\n--- Winsorizing data to handle extreme outliers ---")
 vars_to_winsorize = [
     'd_operating_margin', 'l_operating_margin', 'l_d_operating_margin',
-    'l_leverage_ratio', 'l_log_assets'
+    'l_leverage_ratio', 'l_log_assets', 'sales_growth'
 ]
 for var in vars_to_winsorize:
     if var in df_pd.columns:
@@ -234,7 +238,7 @@ dependent = 'd_operating_margin'
 
 # Define components of the model
 dynamic_terms = ['l_operating_margin', 'l_d_operating_margin']
-firm_controls = ['firm_age', 'l_log_assets', 'l_leverage_ratio']
+firm_controls = ['firm_age', 'l_log_assets', 'l_leverage_ratio', 'sales_growth']
 sector_controls = ['sector_wage_growth']
 
 # --- Create different sets of macro shocks for robustness checks ---
@@ -322,7 +326,35 @@ if f_statistics:
 print("\n--- Summary of Full Sample Sup-F Test ---")
 print(results_break_df.round(4))
 
+# %% 
 
+# ------------------------------------------------------------------
+# SECOND PASS: look for an additional break after 2008  -------------
+# ------------------------------------------------------------------
+df_bt_sub = df_break_test_full[df_break_test_full.index.get_level_values('year') >= 2008]
+
+years_sub = df_bt_sub.index.get_level_values('year').unique().sort_values()
+start_sub = years_sub[int(len(years_sub) * trim_frac)]
+end_sub   = years_sub[int(len(years_sub) * (1 - trim_frac))]
+potential_break_years_sub = range(start_sub, end_sub + 1)
+
+f_stats_sub = []
+for by in potential_break_years_sub:
+    dft = df_bt_sub.copy()
+    dft['post_break'] = (dft.index.get_level_values('year') > by).astype(int)
+    dft['inflation_x_break'] = dft['inflation_rate'] * dft['post_break']
+    ex_unres = exog_vars_break_test + ['inflation_x_break']
+    dft = dft.dropna(subset=ex_unres)
+    ru = PanelOLS(dft[dependent], dft[ex_unres], entity_effects=True).fit(cov_type='clustered', cluster_entity=True)
+    rr = PanelOLS(dft[dependent], dft[exog_vars_break_test], entity_effects=True).fit(cov_type='clustered', cluster_entity=True)
+    f_stats_sub.append({
+        'year': by,
+        'f_stat': ((rr.resid_ss - ru.resid_ss) / 1) / (ru.resid_ss / (ru.nobs - ru.df_model))
+    })
+
+sub_df = pd.DataFrame(f_stats_sub)
+best_sub = sub_df.loc[sub_df['f_stat'].idxmax()]
+print(f"\nSecondary break (post‑2008 sample): {int(best_sub.year)}  F = {best_sub.f_stat:.2f}")
 
 # %% [markdown]
 # ## 5. Main Finding: The 2021-2023 Inflation Spike
@@ -347,13 +379,17 @@ df_interaction = df_reg_final.copy()
 
 # Create dummy and interaction term for core inflation
 df_interaction['episode_21_23'] = df_interaction.index.get_level_values('year').isin([2021, 2022, 2023]).astype(int)
+
+df_interaction['episode_dummy'] = df_interaction['episode_21_23'] 
+
 df_interaction['core_x_episode'] = (df_interaction['core_inflation_rate']
                                     * df_interaction['episode_21_23'])
 
 # Exogenous list for core‑inflation interaction model
 exog_vars_interaction_core = (dynamic_terms + macro_shocks_core +
                               firm_controls + sector_controls +
-                              ['core_x_episode'])
+                            ['episode_dummy',
+                            'core_x_episode'])
 
 # Run the PanelOLS model with Driscoll-Kraay SEs
 mod_interaction_core = PanelOLS(
